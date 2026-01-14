@@ -46,9 +46,9 @@
                              HeadersVisibility="Column"
                              CanUserAddRows="False">
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="Erabiltzailea" Binding="{Binding username}" Width="*"/>
-                            <DataGridTextColumn Header="Pasahitza" Binding="{Binding password}" Width="*"/>
-                            <DataGridCheckBoxColumn Header="Mota" Binding="{Binding erabiltzailemota}" Width="80"/>
+                            <DataGridTextColumn Header="Erabiltzailea" Binding="{Binding Erabiltzailea}" Width="*"/>
+                            <DataGridTextColumn Header="Mota" Binding="{Binding Mota}" Width="Auto"/>
+                            <DataGridTextColumn Header="Pasahitza" Binding="{Binding Pasahitza}" Width="*"/>
                         </DataGrid.Columns>
                     </DataGrid>
 

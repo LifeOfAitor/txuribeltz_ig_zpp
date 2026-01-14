@@ -142,11 +142,13 @@ public class Server {
                 else if (agindua == "GET_USERS" && bezeroaLogeatu != null && bezeroaLogeatu.Mota == "admin")
                 {
                     // Administratzaileak erabiltzaile zerrenda eskatu du
-                    Console.WriteLine($"Admin {bezeroaLogeatu.Erabiltzailea} erabiltzaile zerrenda eskatzen");
+                    Console.WriteLine($"Admin: {bezeroaLogeatu.Erabiltzailea} erabiltzaile zerrenda eskatzen");
                     List<Erabiltzaile> erabiltzaileak = databaseOperations.kargatuErabiltzaileak();
-                    
+
                     // Bidali erabiltzaile guztiak mezu bakarrean
-                    string erabiltzaileZerrenda = string.Join(",", erabiltzaileak);
+                    // Mezua horrelako formatuan bidaliko da: USERS_LIST:user1|mota1|pass1;user2|mota2|pass2
+                    string erabiltzaileZerrenda = string.Join(";", erabiltzaileak.Select(u => $"{u.Erabiltzailea}|{u.Mota}|{u.Pasahitza}"));
+
                     writer.WriteLine($"USERS_LIST:{erabiltzaileZerrenda}");
                     Console.WriteLine($"Erabiltzaile zerrenda bidalita: {erabiltzaileak.Count} erabiltzaile");
                 }

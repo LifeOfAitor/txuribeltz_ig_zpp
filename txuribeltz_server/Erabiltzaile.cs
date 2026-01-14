@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace txuribeltz_server
 {
-    internal class Erabiltzaile
+    public class Erabiltzaile
     {
         public string Erabiltzailea { get; set; }
         public string Mota { get; set; }
