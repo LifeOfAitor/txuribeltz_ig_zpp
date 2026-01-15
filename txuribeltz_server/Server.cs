@@ -71,12 +71,14 @@ public class Server {
                  * LOGIN:erabiltzailea:pasahitza
                 */
                 string agindua = mezuarenzatiak[0];
-                string erabiltzailea = mezuarenzatiak.Length > 1 ? mezuarenzatiak[1] : "";
-                string pasahitza = mezuarenzatiak.Length > 2 ? mezuarenzatiak[2] : "";
+                
 
                 // Konprobatu ea erabiltzailea existitzen den, admin edo user den edo jadanik logeatuta dagoen
                 if (agindua == "LOGIN" && mezuarenzatiak.Length == 3)
                 {
+                    string erabiltzailea = mezuarenzatiak.Length > 1 ? mezuarenzatiak[1] : "";
+                    string pasahitza = mezuarenzatiak.Length > 2 ? mezuarenzatiak[2] : "";
+
                     bool exists = await databaseOperations.checkErabiltzaileak(erabiltzailea, pasahitza);
                     if (exists)
                     {
@@ -138,6 +140,9 @@ public class Server {
                 }
                 else if (agindua == "SIGNUP" && mezuarenzatiak.Length == 3)
                 {
+                    string erabiltzailea = mezuarenzatiak.Length > 1 ? mezuarenzatiak[1] : "";
+                    string pasahitza = mezuarenzatiak.Length > 2 ? mezuarenzatiak[2] : "";
+
                     databaseOperations.sortuErabiltzailea(erabiltzailea, pasahitza);
                     Console.WriteLine($"SIGNUP_OK:{erabiltzailea},{pasahitza}");
                     writer.WriteLine("SIGNUP_OK");
@@ -159,6 +164,20 @@ public class Server {
                 {
                     Console.WriteLine($"Bezeroak deskonexioa eskatu du");
                     break;
+                }
+                else if (agindua == "DELETE")
+                {
+                    string erabiltzailea = mezuarenzatiak.Length > 1 ? mezuarenzatiak[1] : "";
+
+                    //ezabatu erabiltzailea datu baseatik
+                    databaseOperations.ezabatuErabiltzailea(erabiltzailea);
+                }
+                else if (agindua == "CHANGE_P")
+                {
+                    string erabiltzailea = mezuarenzatiak.Length > 1 ? mezuarenzatiak[1] : "";
+                    string pasahitzaBerria = mezuarenzatiak.Length > 2 ? mezuarenzatiak[2] : "";
+                    //aldatu erabiltzailearen pasahitza datu basean
+                    databaseOperations.aldatuPasahitza(erabiltzailea, pasahitzaBerria);
                 }
             }
         }

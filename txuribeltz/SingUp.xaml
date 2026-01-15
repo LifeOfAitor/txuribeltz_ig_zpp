@@ -9,8 +9,7 @@
         WindowStartupLocation="CenterScreen"
         ResizeMode="NoResize"
         Background="#FF2C2C2C"
-        Title="Txuribeltz - Sign up"
-        PreviewKeyDown="Window_PreviewKeyDown">
+        Title="Txuribeltz - Sign up">
 
     <Grid>
         <Grid.RowDefinitions>

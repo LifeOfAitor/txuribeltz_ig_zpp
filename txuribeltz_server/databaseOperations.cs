@@ -130,10 +130,35 @@ namespace txuribeltz_server
                 using var cmd = new NpgsqlCommand(query, conn);
                 cmd.Parameters.AddWithValue("@izena", izena);
                 cmd.ExecuteNonQuery();
+                Console.WriteLine($"{izena} erabiltzailea ondo ezabatu da.");
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Errorea erabiltzailea ezabatzekoan: {ex.Message}");
+            }
+        }
+
+        //eskatutako erabiltzailea pasahitza aldatzen du
+        public static void aldatuPasahitza(string izena, string pasahitzaBerria)
+        {
+            if (dataSource == null)
+            {
+                Console.WriteLine("Ez dago konexiorik sortuta");
+                return;
+            }
+            const string query = "UPDATE erabiltzaileak SET password = @pasahitzaBerria WHERE TRIM(username) = @izena;";
+            try
+            {
+                using var conn = dataSource.OpenConnection(); // datu basera konektatzen da
+                using var cmd = new NpgsqlCommand(query, conn);
+                cmd.Parameters.AddWithValue("@izena", izena);
+                cmd.Parameters.AddWithValue("@pasahitzaBerria", pasahitzaBerria);
+                cmd.ExecuteNonQuery();
+                Console.WriteLine($"{izena} erabiltzailearen pasahitza ondo aldatu da.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Errorea pasahitza aldatzerakoan: {ex.Message}");
             }
         }
 

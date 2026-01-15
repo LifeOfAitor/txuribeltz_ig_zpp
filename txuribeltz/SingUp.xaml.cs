@@ -63,15 +63,5 @@ namespace txuribeltz
         {
             Close();
         }
-
-        //enter sakatuz erabiltzailea sortu ahal izateko
-        //XAML fitxategian jarri PreviewKeyDown="Window_PreviewKeyDown"
-        private void Window_PreviewKeyDown(object sender, KeyEventArgs e)
-        {
-            if (e.Key == Key.Enter)
-            {
-                btnRegistratu_Click(this, new RoutedEventArgs());
-            }
-        }
     }
 }

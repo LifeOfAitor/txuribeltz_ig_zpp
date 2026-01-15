@@ -154,41 +154,81 @@ namespace txuribeltz
         //aukeratutako erabiltzailearen pasahitza aldatzea eskatu zerbitzariari
         private void pasahitzaAldatu(object sender, RoutedEventArgs e)
         {
-            var erabiltzaileAukeratua = dgUsers.SelectedItem as Erabiltzaile;
-            string izena = "";
-            string pasahitza = "";
-
-            //sortu lehio bat pasahitza aldatzeko eta horrela bidaliko diot zerbitzariari
-
-            if (erabiltzaileAukeratua != null)
+            try
             {
-                izena = erabiltzaileAukeratua.Erabiltzailea;
-                if (izena != null && pasahitza != null)
+                var erabiltzaileAukeratua = dgUsers.SelectedItem as Erabiltzaile;
+
+                if (erabiltzaileAukeratua == null)
                 {
-                    writer.WriteLine($"CHANGE_P:{izena}:{pasahitza}");
-                    Thread.Sleep(1000);
+                    MessageBox.Show("Aukeratu erabiltzaile bat lehenik.");
+                    return;
+                }
+
+                // Ireki pasahitza aldatzeko lehioa
+                PasahitzaAldatu lehioa = new PasahitzaAldatu();
+                bool? emaitza = lehioa.ShowDialog();
+
+                // Egiaztatu erabiltzaileak OK sakatu duen eta pasahitza sartu duen
+                if (emaitza == true && !string.IsNullOrWhiteSpace(lehioa.PasahitzaBerria))
+                {
+                    string izena = erabiltzaileAukeratua.Erabiltzailea;
+                    string pasahitzaBerria = lehioa.PasahitzaBerria;
+
+                    // Bidali pasahitza aldatzeko mezua zerbitzariari
+                    writer.WriteLine($"CHANGE_P:{izena}:{pasahitzaBerria}");
+                    
+                    // Itxaron pixka bat eta freskatu erabiltzaileen zerrenda
+                    Thread.Sleep(500);
                     erakutsiErabiltzaileak();
+                    
+                    //MessageBox.Show($"{izena} erabiltzailearen pasahitza aldatu da.");
                 }
             }
-            else
+            catch (Exception ex)
             {
-                MessageBox.Show("Aukeratu erabiltzaile bat eta ezarri pasahitz berri bat");
-            }    
+                MessageBox.Show($"Errorea pasahitza aldatzean: {ex.Message}");
+            }
         }
 
         //aukeratutako erabiltzailea ezabatzea eskatu zerbitzariari
         private void ezabatuErabiltzailea(object sender, RoutedEventArgs e)
         {
-            var erabiltzaileAukeratua = dgUsers.SelectedItem as Erabiltzaile;
-            string izena = "";
-            if (erabiltzaileAukeratua != null)
+            try
             {
-                izena = erabiltzaileAukeratua.Erabiltzailea;
+                var erabiltzaileAukeratua = dgUsers.SelectedItem as Erabiltzaile;
+                
+                if (erabiltzaileAukeratua == null)
+                {
+                    MessageBox.Show("Aukeratu erabiltzaile bat lehenik.");
+                    return;
+                }
 
+                string izena = erabiltzaileAukeratua.Erabiltzailea;
+
+                // Baieztapen mezua erakutsi
+                var emaitza = MessageBox.Show(
+                    $"Ziur zaude {izena} erabiltzailea ezabatu nahi duzula?",
+                    "Baieztapena",
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Question
+                );
+
+                if (emaitza == MessageBoxResult.Yes)
+                {
+                    // Bidali ezabatzeko mezua zerbitzariari
+                    writer.WriteLine($"DELETE:{izena}");
+                    
+                    // Itxaron pixka bat eta freskatu erabiltzaileen zerrenda
+                    Thread.Sleep(500);
+                    erakutsiErabiltzaileak();
+                    
+                    MessageBox.Show($"{izena} erabiltzailea ezabatu da.");
+                }
             }
-            writer.WriteLine($"DELETE:{izena}");
-            Thread.Sleep( 1000 );
-            erakutsiErabiltzaileak();
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Errorea erabiltzailea ezabatzean: {ex.Message}");
+            }
         }
     }
 }
