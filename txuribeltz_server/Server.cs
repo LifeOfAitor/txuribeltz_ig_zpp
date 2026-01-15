@@ -10,7 +10,7 @@ public class Server
 {
     private static readonly object lockObject = new();
     // Konektatutako bezeroen zerrenda (zerbitzarian baina logeatu gabe)
-    private static readonly List<BezeroKonektatua> bezeroak = [];
+    private static readonly List<BezeroKonektatuaDatuBasean> zerbitzarikoBezeroak = [];
     // gehienezko bezero kopurua
     private const int MaxBezeroak = 10;
 
@@ -37,7 +37,7 @@ public class Server
                 TcpClient socketCliente = await listener.AcceptTcpClientAsync();
                 lock (lockObject)
                 {
-                    if (bezeroak.Count >= MaxBezeroak)
+                    if (zerbitzarikoBezeroak.Count >= MaxBezeroak)
                     {
                         Console.WriteLine("Bezero gehiegi konektatuta. Ezin da konektatu.");
                         socketCliente.Close();
@@ -57,22 +57,33 @@ public class Server
 
     private static async Task ErabiltzaileaKudeatuAsync(TcpClient socketCliente)
     {
+        // bezeroaren reader, writer sortu. 
         StreamReader? reader = null;
         StreamWriter? writer = null;
-        BezeroKonektatua? logeatutakoBezeroa = null;
+        BezeroKonektatuaDatuBasean? logeatutakoBezeroa = null;
 
         try
         {
+            //NetworkStream sortu, reader ezarri, writer ezarri
             NetworkStream ns = socketCliente.GetStream();
             writer = new StreamWriter(ns, Encoding.UTF8) { AutoFlush = true };
             reader = new StreamReader(ns, Encoding.UTF8);
 
+            //line izango da bezeroaren mezua
             string? line;
+
+            // denbora guztian egongo da entzuten zerbitzaria bezeroaren mezuei
             while ((line = await reader.ReadLineAsync()) != null)
             {
+                // mezua komandoak izango dira adibidez:
+                // LOGIN:erabiltzailea:pasahitza
                 string[] mezuarenzatiak = line.Split(':');
+                // agindua gordeko dugu eta horren arabera metodo bat edo bestea erabiliko dugu
                 string agindua = mezuarenzatiak[0];
 
+                // Bezeroaren komandoa asinkronoki prozesatzen du eta saioaren egoera (logeatutako bezeroa) eguneratzen du; 
+                // 'await' erabilita haria blokeatu gabe itxaroten da emaitza lortu arte.
+                // beteko da informazioa behin logeatzen garenean 
                 logeatutakoBezeroa = await ProzesatuAgindua(agindua, mezuarenzatiak, writer, reader, socketCliente, logeatutakoBezeroa);
 
                 if (agindua == "DISCONNECT")
@@ -96,14 +107,16 @@ public class Server
         }
     }
 
-    private static async Task<BezeroKonektatua?> ProzesatuAgindua(
+    // bezeroak bidalitako agindua prozesatuko da metodo honetan switch-case baten bidez
+    private static async Task<BezeroKonektatuaDatuBasean?> ProzesatuAgindua(
         string agindua,
         string[] mezuarenzatiak,
         StreamWriter writer,
         StreamReader reader,
         TcpClient socketCliente,
-        BezeroKonektatua? logeatutakoBezeroa)
+        BezeroKonektatuaDatuBasean? logeatutakoBezeroa)
     {
+
         switch (agindua)
         {
             case "LOGIN" when mezuarenzatiak.Length == 3:
@@ -125,6 +138,19 @@ public class Server
                 databaseOperations.aldatuPasahitza(mezuarenzatiak[1], mezuarenzatiak[2]);
                 break;
 
+            case "USERDATA":
+                string? emaitza = databaseOperations.lortuBezeroInformazioaMenurako(logeatutakoBezeroa.Erabiltzailea);
+
+                if (!string.IsNullOrEmpty(emaitza))
+                {
+                    writer.WriteLine(emaitza);
+                }
+                else
+                {
+                    Console.WriteLine($"ERROR:{logeatutakoBezeroa.Erabiltzailea} datuak ez dira aurkitu");
+                }                    
+                break;
+
             case "DISCONNECT":
                 // metodoan ez dago ezer egin behar, haria itxi egingo da main metodoko finally blokean
                 break;
@@ -133,11 +159,10 @@ public class Server
                 writer.WriteLine("ERROR:Agindu ezezaguna edo parametro falta");
                 break;
         }
-
         return logeatutakoBezeroa;
     }
 
-    private static async Task<BezeroKonektatua?> LoginKudeatu(
+    private static async Task<BezeroKonektatuaDatuBasean?> LoginKudeatu(
 
         string[] mezuarenzatiak,
         StreamWriter writer,
@@ -166,7 +191,7 @@ public class Server
         writer.WriteLine($"LOGIN_OK:{mota}");
         Console.WriteLine($"{mota.ToUpper()} erabiltzailea logeatuta: {erabiltzailea}");
 
-        var bezeroBerria = new BezeroKonektatua
+        var bezeroBerria = new BezeroKonektatuaDatuBasean
         {
             Erabiltzailea = erabiltzailea,
             SocketCliente = socketCliente,
@@ -191,7 +216,7 @@ public class Server
         return Task.CompletedTask;
     }
 
-    private static void GetUsersKudeatu(BezeroKonektatua logeatutakoBezeroa, StreamWriter writer)
+    private static void GetUsersKudeatu(BezeroKonektatuaDatuBasean logeatutakoBezeroa, StreamWriter writer)
     {
         Console.WriteLine($"Admin: {logeatutakoBezeroa.Erabiltzailea} erabiltzaile zerrenda eskatzen");
         List<Erabiltzaile> erabiltzaileak = databaseOperations.kargatuErabiltzaileak();
@@ -207,28 +232,28 @@ public class Server
     {
         lock (lockObject)
         {
-            return bezeroak.Any(b => b.Erabiltzailea == erabiltzailea);
+            return zerbitzarikoBezeroak.Any(b => b.Erabiltzailea == erabiltzailea);
         }
     }
 
-    private static void GehituBezeroa(BezeroKonektatua bezeroa)
+    private static void GehituBezeroa(BezeroKonektatuaDatuBasean bezeroa)
     {
         lock (lockObject)
         {
-            bezeroak.Add(bezeroa);
-            Console.WriteLine($"LOGEATUTAKO BEZERO KOPURUA: {bezeroak.Count}");
+            zerbitzarikoBezeroak.Add(bezeroa);
+            Console.WriteLine($"LOGEATUTAKO BEZERO KOPURUA: {zerbitzarikoBezeroak.Count}");
         }
     }
 
-    private static void KenduBezeroa(BezeroKonektatua? bezeroa)
+    private static void KenduBezeroa(BezeroKonektatuaDatuBasean? bezeroa)
     {
         if (bezeroa == null) return;
 
         lock (lockObject)
         {
-            bezeroak.Remove(bezeroa);
+            zerbitzarikoBezeroak.Remove(bezeroa);
             Console.WriteLine($"Bezeroa {bezeroa.Erabiltzailea} zerrendatik kenduta");
-            Console.WriteLine($"LOGEATUTAKO BEZERO KOPURUA: {bezeroak.Count}");
+            Console.WriteLine($"LOGEATUTAKO BEZERO KOPURUA: {zerbitzarikoBezeroak.Count}");
         }
     }
 }

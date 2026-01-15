@@ -196,5 +196,74 @@ namespace txuribeltz_server
             }
             return erabiltzaileak;
         }
+
+        //erabiltzailea menuan sartzen denean lortuko duen informazio guztia bidaliko da string luze batean ":" banatuta
+        public static string? lortuBezeroInformazioaMenurako(string erabiltzailea)
+        {
+            if (dataSource == null)
+            {
+                Console.WriteLine("Ez dago konexiorik sortuta");
+                return null;
+            }
+
+            const string query = """
+                                SELECT 
+                                    e.username,
+                                    e.elo,
+                                    COALESCE(SUM(CASE WHEN m.winner_id = e.id THEN 1 ELSE 0 END), 0) AS wins,
+                                    COALESCE(SUM(CASE WHEN m.winner_id != e.id AND (m.player1_id = e.id OR m.player2_id = e.id) THEN 1 ELSE 0 END), 0) AS losses,
+                                    CASE 
+                                        WHEN COALESCE(SUM(CASE WHEN m.winner_id = e.id THEN 1 ELSE 0 END), 0) + COALESCE(SUM(CASE WHEN m.winner_id != e.id AND (m.player1_id = e.id OR m.player2_id = e.id) THEN 1 ELSE 0 END), 0) = 0 
+                                        THEN 0
+                                        ELSE COALESCE(SUM(CASE WHEN m.winner_id = e.id THEN 1 ELSE 0 END), 0)::float / 
+                                             (COALESCE(SUM(CASE WHEN m.winner_id = e.id THEN 1 ELSE 0 END), 0) + COALESCE(SUM(CASE WHEN m.winner_id != e.id AND (m.player1_id = e.id OR m.player2_id = e.id) THEN 1 ELSE 0 END), 0))
+                                    END AS winrate
+                                FROM 
+                                    erabiltzaileak e
+                                LEFT JOIN 
+                                    partidak m ON e.id = m.player1_id OR e.id = m.player2_id
+                                WHERE 
+                                    TRIM(e.username) = @username
+                                GROUP BY 
+                                    e.id;
+                                """;
+            try
+            {
+                using var conn = dataSource.OpenConnection();
+                using var cmd = new NpgsqlCommand(query, conn);
+                cmd.Parameters.AddWithValue("username", erabiltzailea);
+
+                using var reader = cmd.ExecuteReader();
+
+                if (!reader.Read())
+                {
+                    // Ez dago erabiltzaile hori datu basean
+                    return string.Empty;
+                }
+
+                // Read columns in the same order as SELECT
+                string username = reader.GetString(0);
+                int elo = reader.GetInt32(1);
+                int irabaziak = reader.GetInt32(2);
+                int galduak = reader.GetInt32(3);
+                double winrate = reader.IsDBNull(4) ? 0.0 : reader.GetDouble(4);
+
+                string erantzuna = $"DATA:{username}:{elo}:{irabaziak}:{galduak}:{winrate}";
+                Console.WriteLine($"""
+                                    {erabiltzailea.ToUpper()} erabiltzailearen informazioa: 
+                                        ELO:{elo}
+                                        IRABAZIAK:{irabaziak}
+                                        GALDUAK:{galduak}
+                                        WINRATE:{winrate*100}%
+                                    """);
+
+                return erantzuna;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Errorea {erabiltzailea.ToUpper()} informazioa lortzen: {ex}");
+                return null;
+            }
+        }
     }
 }
