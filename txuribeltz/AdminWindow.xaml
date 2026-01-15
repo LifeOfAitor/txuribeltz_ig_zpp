@@ -22,6 +22,18 @@
                    FontWeight="Bold" 
                    Foreground="#333"
                    Margin="0,0,0,20"/>
+        
+        <Button Grid.Row="0"
+                x:Name="btnLogout"
+                Content="Saioa Itxi" 
+                Background="#F44336"
+                Foreground="White"
+                FontWeight="Bold"
+                Height="40"
+                Width="120"
+                Click="LogoutButton_Click"
+                VerticalAlignment="Center"
+                HorizontalAlignment="Right"/>
 
         <!-- Main Content -->
         <TabControl Grid.Row="1" Background="White">
@@ -66,7 +78,8 @@
                                 Background="#FF00A86B"
                                 Foreground="White"
                                 FontWeight="Bold"
-                                Cursor="Hand"/>
+                                Cursor="Hand"
+                                Click="pasahitzaAldatu"/>
 
                         <Button x:Name="btnDeleteUser"
                                 Content="Ezabatu" 
@@ -75,7 +88,8 @@
                                 Background="#F44336"
                                 Foreground="White"
                                 FontWeight="Bold"
-                                Cursor="Hand"/>
+                                Cursor="Hand"
+                                Click="ezabatuErabiltzailea"/>
                     </StackPanel>
                 </Grid>
             </TabItem>

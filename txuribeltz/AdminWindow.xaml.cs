@@ -49,7 +49,7 @@ namespace txuribeltz
                     {
                         Dispatcher.Invoke(() =>
                         {
-                            ProzesatuMezua(line);
+                            prozesatuMezua(line);
                         });
                     }
                 }
@@ -66,7 +66,7 @@ namespace txuribeltz
             t.Start();
         }
 
-        private void ProzesatuMezua(string mezua)
+        private void prozesatuMezua(string mezua)
         {
             // Egiaztatu mezua USERS_LIST motakoa den
             if (mezua.StartsWith("USERS_LIST:"))
@@ -143,6 +143,52 @@ namespace txuribeltz
             {
                 MessageBox.Show($"Errorea erabiltzaileak eskatzean: {ex.Message}");
             }
+        }
+
+        private void LogoutButton_Click(object sender, RoutedEventArgs e)
+        {
+            writer.WriteLine("DISCONNECT");
+            this.Close();
+        }
+
+        //aukeratutako erabiltzailearen pasahitza aldatzea eskatu zerbitzariari
+        private void pasahitzaAldatu(object sender, RoutedEventArgs e)
+        {
+            var erabiltzaileAukeratua = dgUsers.SelectedItem as Erabiltzaile;
+            string izena = "";
+            string pasahitza = "";
+
+            //sortu lehio bat pasahitza aldatzeko eta horrela bidaliko diot zerbitzariari
+
+            if (erabiltzaileAukeratua != null)
+            {
+                izena = erabiltzaileAukeratua.Erabiltzailea;
+                if (izena != null && pasahitza != null)
+                {
+                    writer.WriteLine($"CHANGE_P:{izena}:{pasahitza}");
+                    Thread.Sleep(1000);
+                    erakutsiErabiltzaileak();
+                }
+            }
+            else
+            {
+                MessageBox.Show("Aukeratu erabiltzaile bat eta ezarri pasahitz berri bat");
+            }    
+        }
+
+        //aukeratutako erabiltzailea ezabatzea eskatu zerbitzariari
+        private void ezabatuErabiltzailea(object sender, RoutedEventArgs e)
+        {
+            var erabiltzaileAukeratua = dgUsers.SelectedItem as Erabiltzaile;
+            string izena = "";
+            if (erabiltzaileAukeratua != null)
+            {
+                izena = erabiltzaileAukeratua.Erabiltzailea;
+
+            }
+            writer.WriteLine($"DELETE:{izena}");
+            Thread.Sleep( 1000 );
+            erakutsiErabiltzaileak();
         }
     }
 }

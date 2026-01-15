@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 
 namespace txuribeltz_server
 {
+    /*
+     * Admin erabiltzaileak nahi dituen operazioak egiteko behar duen erabiltzaileen informazioa gordeko du objetu honek
+     */
     public class Erabiltzaile
     {
         public string Erabiltzailea { get; set; }

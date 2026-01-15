@@ -74,7 +74,7 @@ public class Server {
                 string erabiltzailea = mezuarenzatiak.Length > 1 ? mezuarenzatiak[1] : "";
                 string pasahitza = mezuarenzatiak.Length > 2 ? mezuarenzatiak[2] : "";
 
-
+                // Konprobatu ea erabiltzailea existitzen den, admin edo user den edo jadanik logeatuta dagoen
                 if (agindua == "LOGIN" && mezuarenzatiak.Length == 3)
                 {
                     bool exists = await databaseOperations.checkErabiltzaileak(erabiltzailea, pasahitza);
@@ -108,6 +108,8 @@ public class Server {
                             lock (lockObject)
                             {
                                 bezeroak.Add(bezeroaLogeatu);
+                                Console.WriteLine($"LOGEATUTAKO BEZERO KOPURUA: {bezeroak.Count()}");
+
                             }
                         }
                         else
@@ -125,6 +127,7 @@ public class Server {
                             lock (lockObject)
                             {
                                 bezeroak.Add(bezeroaLogeatu);
+                                Console.WriteLine($"LOGEATUTAKO BEZERO KOPURUA: {bezeroak.Count()}");
                             }
                         }
                     }
@@ -172,6 +175,7 @@ public class Server {
                 {
                     bezeroak.Remove(bezeroaLogeatu);
                     Console.WriteLine($"Bezeroa {bezeroaLogeatu.Erabiltzailea} zerrendatik kenduta");
+                    Console.WriteLine($"LOGEATUTAKO BEZERO KOPURUA: {bezeroak.Count()}");
                 }
             }
             
