@@ -1,0 +1,286 @@
+<Window x:Class="txuribeltz.UserWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:txuribeltz"
+        mc:Ignorable="d"
+        Title="Txuribeltz - Jokalaria" 
+        Height="700" 
+        Width="1000"
+        WindowStartupLocation="CenterScreen"
+        Background="#FF2C2C2C">
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header with Title and Logout Button -->
+        <Grid Grid.Row="0" Margin="0,0,0,20">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Grid.Column="0"
+                       Text="TXURIBELTZ - Jokalaria" 
+                       FontSize="28" 
+                       FontWeight="Bold" 
+                       Foreground="White"
+                       VerticalAlignment="Center"/>
+
+            <Button Grid.Column="1"
+                    x:Name="btnLogout"
+                    Content="Saioa Itxi" 
+                    Background="#FF6C757D"
+                    Foreground="White"
+                    FontWeight="Bold"
+                    Height="40"
+                    Width="120"
+                    Click="LogoutButton_Click"
+                    VerticalAlignment="Center"/>
+        </Grid>
+
+        <!-- Main Content Area -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="300"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="300"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Left Panel: User Info -->
+            <StackPanel Grid.Column="0" Margin="0,0,15,0">
+                <TextBlock Text="NIRE PROFILA" 
+                           FontSize="16" 
+                           FontWeight="Bold" 
+                           Foreground="White"
+                           Margin="0,0,0,15"/>
+
+                <Border Background="#FF3C3C3C" CornerRadius="8" Padding="15">
+                    <StackPanel>
+                        <!-- User Info Display -->
+                        <StackPanel x:Name="userInfoDisplay" Margin="0,0,0,15">
+                            <TextBlock Text="Erabiltzailea:" 
+                                       Foreground="#FFCCCCCC" 
+                                       FontSize="12"
+                                       Margin="0,0,0,3"/>
+                            <TextBlock x:Name="lblUsername" 
+                                       Text="Loading..." 
+                                       Foreground="White" 
+                                       FontSize="14"
+                                       FontWeight="Bold"
+                                       Margin="0,0,0,15"/>
+
+                            <TextBlock Text="Email:" 
+                                       Foreground="#FFCCCCCC" 
+                                       FontSize="12"
+                                       Margin="0,0,0,3"/>
+                            <TextBlock x:Name="lblEmail" 
+                                       Text="Loading..." 
+                                       Foreground="White" 
+                                       FontSize="14"
+                                       Margin="0,0,0,15"/>
+
+                            <TextBlock Text="Mailakoa:" 
+                                       Foreground="#FFCCCCCC" 
+                                       FontSize="12"
+                                       Margin="0,0,0,3"/>
+                            <TextBlock x:Name="lblRank" 
+                                       Text="Hasiberria" 
+                                       Foreground="#FF00A86B" 
+                                       FontSize="14"
+                                       FontWeight="Bold"
+                                       Margin="0,0,0,15"/>
+
+                            <TextBlock Text="Partidak Jokatu:" 
+                                       Foreground="#FFCCCCCC" 
+                                       FontSize="12"
+                                       Margin="0,0,0,3"/>
+                            <TextBlock x:Name="lblMatches" 
+                                       Text="0" 
+                                       Foreground="White" 
+                                       FontSize="14"
+                                       Margin="0,0,0,15"/>
+
+                            <TextBlock Text="Garaipena Tasa:" 
+                                       Foreground="#FFCCCCCC" 
+                                       FontSize="12"
+                                       Margin="0,0,0,3"/>
+                            <TextBlock x:Name="lblWinRate" 
+                                       Text="0%" 
+                                       Foreground="#FF00A86B" 
+                                       FontSize="14"
+                                       Margin="0,0,0,15"/>
+                        </StackPanel>
+
+                        <!-- Edit Button -->
+                        <Button x:Name="btnEditProfile"
+                                Content="Profila Aldatu" 
+                                Background="#FF00A86B" 
+                                Foreground="White"
+                                FontWeight="Bold"
+                                Height="35"
+                                Click="EditProfile_Click"
+                                Margin="0,0,0,10"/>
+
+                        <!-- Edit Form (Hidden by default) -->
+                        <StackPanel x:Name="editFormPanel" Visibility="Collapsed" Margin="0,10,0,0">
+                            <TextBlock Text="Email Berria:" Foreground="White" FontSize="11" Margin="0,0,0,3"/>
+                            <TextBox x:Name="txtNewEmail" Height="30" Margin="0,0,0,10" FontSize="12"/>
+
+                            <TextBlock Text="Pasahitza Berria:" Foreground="White" FontSize="11" Margin="0,0,0,3"/>
+                            <PasswordBox x:Name="txtNewPassword" Height="30" Margin="0,0,0,10" FontSize="12"/>
+
+                            <Button x:Name="btnSaveChanges"
+                                    Content="Gorde" 
+                                    Background="#FF00A86B" 
+                                    Foreground="White"
+                                    FontWeight="Bold"
+                                    Height="30"
+                                    Click="SaveChanges_Click"
+                                    Margin="0,0,0,5"/>
+
+                            <Button x:Name="btnCancelEdit"
+                                    Content="Utzi" 
+                                    Background="#FF6C757D" 
+                                    Foreground="White"
+                                    FontWeight="Bold"
+                                    Height="30"
+                                    Click="CancelEdit_Click"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+
+            <!-- Center Panel: Queue for Match -->
+            <StackPanel Grid.Column="1" Margin="15,0,15,0">
+                <TextBlock Text="PARTIDARAKO ILARA" 
+                           FontSize="16" 
+                           FontWeight="Bold" 
+                           Foreground="White"
+                           Margin="0,0,0,15"/>
+
+                <Border Background="#FF3C3C3C" 
+                        CornerRadius="8" 
+                        Padding="20"
+                        Margin="0,0,0,15"
+                        MinHeight="200">
+                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                        <TextBlock x:Name="queueStatus" 
+                                   Text="Ez zaude ilerako" 
+                                   FontSize="18" 
+                                   Foreground="White"
+                                   TextAlignment="Center"
+                                   Margin="0,0,0,20"
+                                   FontWeight="Bold"/>
+
+                        <TextBlock x:Name="queuePosition" 
+                                   Text="" 
+                                   FontSize="14" 
+                                   Foreground="#FFCCCCCC"
+                                   TextAlignment="Center"
+                                   Margin="0,0,0,20"/>
+
+                        <Button x:Name="btnQueueMatch"
+                                Content="PARTIZIPATZERA" 
+                                Background="#FF00A86B" 
+                                Foreground="White"
+                                FontWeight="Bold"
+                                Height="50"
+                                FontSize="16"
+                                Click="QueueMatch_Click"/>
+
+                        <Button x:Name="btnCancelQueue"
+                                Content="Utzarraraz" 
+                                Background="#FF6C757D" 
+                                Foreground="White"
+                                FontWeight="Bold"
+                                Height="40"
+                                FontSize="14"
+                                Margin="0,10,0,0"
+                                Click="CancelQueue_Click"
+                                Visibility="Collapsed"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Match Information (if in queue) -->
+                <Border Background="#FF3C3C3C" 
+                        CornerRadius="8" 
+                        Padding="20"
+                        x:Name="matchInfoBorder"
+                        Visibility="Collapsed">
+                    <StackPanel>
+                        <TextBlock Text="Zure Aurkaria:" 
+                                   Foreground="#FFCCCCCC" 
+                                   FontSize="12"
+                                   Margin="0,0,0,5"/>
+                        <TextBlock x:Name="lblOpponent" 
+                                   Text="-" 
+                                   Foreground="White" 
+                                   FontSize="14"
+                                   FontWeight="Bold"
+                                   Margin="0,0,0,15"/>
+
+                        <TextBlock Text="Normalizazio Epea:" 
+                                   Foreground="#FFCCCCCC" 
+                                   FontSize="12"
+                                   Margin="0,0,0,5"/>
+                        <TextBlock x:Name="lblWaitTime" 
+                                   Text="-" 
+                                   Foreground="White" 
+                                   FontSize="14"
+                                   Margin="0,0,0,15"/>
+
+                        <Button x:Name="btnStartMatch"
+                                Content="Partida Hasi" 
+                                Background="#FF00A86B" 
+                                Foreground="White"
+                                FontWeight="Bold"
+                                Height="40"
+                                Click="StartMatch_Click"/>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+
+            <!-- Right Panel: Top 10 Players -->
+            <StackPanel Grid.Column="2" Margin="15,0,0,0">
+                <TextBlock Text="TOP 10 JOKALARIA" 
+                           FontSize="16" 
+                           FontWeight="Bold" 
+                           Foreground="White"
+                           Margin="0,0,0,15"/>
+
+                <Border Background="#FF3C3C3C" 
+                        CornerRadius="8" 
+                        Padding="15">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="600">
+                        <StackPanel x:Name="topPlayersPanel">
+                            <!-- Top 10 Players will be loaded here -->
+                            <TextBlock Text="Loading..." 
+                                       Foreground="#FFCCCCCC"
+                                       TextAlignment="Center"
+                                       Margin="0,20"/>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Border>
+            </StackPanel>
+        </Grid>
+
+        <!-- Footer: Status Messages -->
+        <StackPanel Grid.Row="2" Margin="0,15,0,0">
+            <TextBlock x:Name="txtStatusMessage" 
+                       Text="" 
+                       Foreground="#FF00A86B" 
+                       FontSize="12"
+                       Margin="0,0,0,5"/>
+            <TextBlock x:Name="txtErrorMessage" 
+                       Text="" 
+                       Foreground="PaleVioletRed" 
+                       FontSize="12"/>
+        </StackPanel>
+    </Grid>
+</Window>
