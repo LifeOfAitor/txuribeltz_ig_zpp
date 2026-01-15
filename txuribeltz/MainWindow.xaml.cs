@@ -75,7 +75,7 @@ namespace txuribeltz
                                     }
                                     else
                                     {
-                                        UserWindow userWin = new UserWindow(reader, writer);
+                                        UserWindow userWin = new UserWindow(reader, writer, txtUsuario.Text);
                                         userWin.Show();
                                     }
                                     

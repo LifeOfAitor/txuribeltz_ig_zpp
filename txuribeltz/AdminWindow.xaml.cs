@@ -145,6 +145,20 @@ namespace txuribeltz
             }
         }
 
+        // metodo berdina baina botoitik kargatzeko berriro badaezpa ere
+        private void erakutsiErabiltzaileak(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                // Request users list from server
+                writer.WriteLine("GET_USERS");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Errorea erabiltzaileak eskatzean: {ex.Message}");
+            }
+        }
+
         private void LogoutButton_Click(object sender, RoutedEventArgs e)
         {
             writer.WriteLine("DISCONNECT");

@@ -2,6 +2,7 @@ using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using System.Windows.Shapes;
 using txuribeltz_server;
 
 namespace txuribeltz
@@ -12,13 +13,14 @@ namespace txuribeltz
         private bool partidaAurkituta = false;
         private StreamWriter writer;
         private StreamReader reader;
-        List<Erabiltzaile> erabiltzaileak = new List<Erabiltzaile>();
+        string username;
 
 
-        public UserWindow(StreamReader reader, StreamWriter writer)
+        public UserWindow(StreamReader reader, StreamWriter writer, string username)
         {
             this.reader = reader;
             this.writer = writer;
+            this.username = username;
             InitializeComponent();
             hasiMezuakEntzuten();
             kargatuErabiltzailea();
@@ -56,17 +58,39 @@ namespace txuribeltz
             try
             {
                 // eskatu gure erabiltzailearen informazioa
-                writer.WriteLine("GET_USER");
+                writer.WriteLine($"USERDATA:");
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Errorea erabiltzaileak eskatzean: {ex.Message}");
+                MessageBox.Show($"Errorea erabiltzailearen informazioa eskatzean: {ex.Message}");
             }
         }
 
         private void prozesatuMezua(string mezua)
         {
-            
+            // mezua komandoak izango dira adibidez:
+            // LOGIN:erabiltzailea:pasahitza
+            string[] mezuarenzatiak = mezua.Split(':');
+            // agindua gordeko dugu eta horren arabera metodo bat edo bestea erabiliko dugu
+            string agindua = mezuarenzatiak[0];
+
+            switch (agindua)
+            {
+                case "DATA":
+                    Dispatcher.Invoke(() =>
+                    {
+                        lblUsername.Text = mezuarenzatiak[1];
+                        lblElo.Text = mezuarenzatiak[2];
+                        lblIrabazita.Text = mezuarenzatiak[3];
+                        lblGalduta.Text = mezuarenzatiak[4];
+                        lblWinRate.Text = $"{mezuarenzatiak[5]}%";
+                    }); 
+                    break;
+                default:
+                    writer.WriteLine("ERROR:Agindu ezezaguna edo parametro falta");
+                    break;
+            }
+
         }
 
         private void LogoutButton_Click(object sender, RoutedEventArgs e)
