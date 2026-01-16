@@ -13,6 +13,7 @@ public class Server
     private static readonly List<BezeroKonektatuaDatuBasean> zerbitzarikoBezeroak = [];
     // gehienezko bezero kopurua
     private const int MaxBezeroak = 10;
+    private static List<string> kolanDaudenErabiltzaileak = new();
 
     public static async Task Main(string[] args)
     {
@@ -149,6 +150,18 @@ public class Server
                 {
                     Console.WriteLine($"ERROR:{logeatutakoBezeroa.Erabiltzailea} datuak ez dira aurkitu");
                 }                    
+                break;
+
+            case "FIND_MATCH":
+                // partida bilatzen ari dela adierazi
+                Console.WriteLine($"Erabiltzailea {logeatutakoBezeroa.Erabiltzailea} partida bilatzen");
+                //bezeroa kolan gehitu
+                lock (lockObject)
+                {
+                    kolanDaudenErabiltzaileak.Add(logeatutakoBezeroa.Erabiltzailea);
+                    logeatutakoBezeroa.Elo = mezuarenzatiak[1];
+                    //BUKATU GABE
+                }
                 break;
 
             case "DISCONNECT":

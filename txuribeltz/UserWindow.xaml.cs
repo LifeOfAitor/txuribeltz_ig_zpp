@@ -86,6 +86,14 @@ namespace txuribeltz
                         lblWinRate.Text = $"{mezuarenzatiak[5]}%";
                     }); 
                     break;
+                case "MATCH_FOUND":
+                    partidaAurkituta = true;
+                    if (kolanDago)
+                    {
+                        lblPartidaBilatzen.Visibility = Visibility.Collapsed;
+                        partidaInformazioa.Visibility = Visibility.Visible;
+                    }
+                    break;
                 default:
                     writer.WriteLine("ERROR:Agindu ezezaguna edo parametro falta");
                     break;
@@ -103,8 +111,13 @@ namespace txuribeltz
         {
             editFormPanel.Visibility = Visibility.Visible;
         }
+
+        //pasahitza aldatu eta gorde egingo da hemendik
+        //Momentuz ez da konprobatuko berdina den ezta ezer
         private void SaveChanges_Click(object sender, RoutedEventArgs e)
         {
+            // Bidali pasahitza aldatzeko mezua zerbitzariari
+            writer.WriteLine($"CHANGE_P:{username}:{txtNewPassword.Password}");
             editFormPanel.Visibility = Visibility.Collapsed;
         }
         private void CancelEdit_Click(object sender, RoutedEventArgs e)
@@ -116,11 +129,8 @@ namespace txuribeltz
         {
             kolanDago = true;
             lblPartidaBilatzen.Visibility = Visibility.Visible;
-            writer.WriteLine("FIND_MATCH");
-            if (partidaAurkituta)
-            {
-                partidaInformazioa.Visibility = Visibility.Visible;
-            }
+            //Bidaltzen da izena eta elo-a horrela beste erabiltzaileek ikusiko dute noren aurka jolastuko duten
+            writer.WriteLine($"FIND_MATCH:{lblElo.Text}");
         }
 
         private void StartMatch_Click(object sender, RoutedEventArgs e)
