@@ -10,10 +10,12 @@ namespace txuribeltz
     public partial class UserWindow : Window
     {
         private bool kolanDago = false;
-        private bool partidaAurkituta = false;
+        //private bool partidaAurkituta = false;
         private StreamWriter writer;
         private StreamReader reader;
-        string username;
+        private string username;
+        private string? currentOpponent;
+        private string? currentOpponentElo;
 
 
         public UserWindow(StreamReader reader, StreamWriter writer, string username)
@@ -53,6 +55,7 @@ namespace txuribeltz
             t.IsBackground = true;
             t.Start();
         }
+
         private void kargatuErabiltzailea()
         {
             try
@@ -68,37 +71,60 @@ namespace txuribeltz
 
         private void prozesatuMezua(string mezua)
         {
-            // mezua komandoak izango dira adibidez:
-            // LOGIN:erabiltzailea:pasahitza
+            // Mezuak formatu hau izango du: AGINDUA:informazioa:informazioa...
+            // Zerbitzarian kudeatuko dira aginduak
             string[] mezuarenzatiak = mezua.Split(':');
-            // agindua gordeko dugu eta horren arabera metodo bat edo bestea erabiliko dugu
             string agindua = mezuarenzatiak[0];
 
             switch (agindua)
             {
                 case "DATA":
-                    Dispatcher.Invoke(() =>
-                    {
-                        lblUsername.Text = mezuarenzatiak[1];
-                        lblElo.Text = mezuarenzatiak[2];
-                        lblIrabazita.Text = mezuarenzatiak[3];
-                        lblGalduta.Text = mezuarenzatiak[4];
-                        lblWinRate.Text = $"{mezuarenzatiak[5]}%";
-                    }); 
+                        Dispatcher.Invoke(() =>
+                        {
+                            txt_username.Text = mezuarenzatiak[1].ToUpper();
+                            lblUsername.Text = mezuarenzatiak[1];
+                            lblElo.Text = mezuarenzatiak[2];
+                            lblIrabazita.Text = mezuarenzatiak[3];
+                            lblGalduta.Text = mezuarenzatiak[4];
+                            lblWinRate.Text = $"{mezuarenzatiak[5]}%";
+                        });
                     break;
+
                 case "MATCH_FOUND":
-                    partidaAurkituta = true;
-                    if (kolanDago)
+                    if (mezuarenzatiak.Length >= 3)
                     {
-                        lblPartidaBilatzen.Visibility = Visibility.Collapsed;
-                        partidaInformazioa.Visibility = Visibility.Visible;
+                        currentOpponent = mezuarenzatiak[1];
+                        currentOpponentElo = mezuarenzatiak[2];
+                        //partidaAurkituta = true;
+                        kolanDago = false;
+
+                        Dispatcher.Invoke(() =>
+                        {
+                            if (!kolanDago)
+                            {
+                                lblPartidaBilatzen.Visibility = Visibility.Collapsed;
+                                lblOpponent.Text = currentOpponent;
+                                lblEloAurkaria.Text = currentOpponentElo;
+                                partidaInformazioa.Visibility = Visibility.Visible;
+                            }
+                        });
                     }
                     break;
+
+                case "MATCH_STARTED":
+                    Dispatcher.Invoke(() =>
+                    {
+                        MessageBox.Show($"Partidua hasi da {currentOpponent} aurka!");
+                        // Ireki match window (etorkizunean)
+                        // new MatchWindow(username, currentOpponent).Show();
+                        // this.Close();
+                    });
+                    break;
+
                 default:
-                    writer.WriteLine("ERROR:Agindu ezezaguna edo parametro falta");
+                    Console.WriteLine($"DEBUG: Jasotako mezua: {mezua}");
                     break;
             }
-
         }
 
         private void LogoutButton_Click(object sender, RoutedEventArgs e)
@@ -112,14 +138,13 @@ namespace txuribeltz
             editFormPanel.Visibility = Visibility.Visible;
         }
 
-        //pasahitza aldatu eta gorde egingo da hemendik
-        //Momentuz ez da konprobatuko berdina den ezta ezer
         private void SaveChanges_Click(object sender, RoutedEventArgs e)
         {
             // Bidali pasahitza aldatzeko mezua zerbitzariari
             writer.WriteLine($"CHANGE_P:{username}:{txtNewPassword.Password}");
             editFormPanel.Visibility = Visibility.Collapsed;
         }
+
         private void CancelEdit_Click(object sender, RoutedEventArgs e)
         {
             editFormPanel.Visibility = Visibility.Collapsed;
@@ -129,13 +154,20 @@ namespace txuribeltz
         {
             kolanDago = true;
             lblPartidaBilatzen.Visibility = Visibility.Visible;
-            //Bidaltzen da izena eta elo-a horrela beste erabiltzaileek ikusiko dute noren aurka jolastuko duten
-            writer.WriteLine($"FIND_MATCH:{lblElo.Text}");
+            // Bidaltzen da elo-a zerbitzariari (zerbitzariak daturik esleituko du)
+            writer.WriteLine($"FIND_MATCH:");
         }
 
         private void StartMatch_Click(object sender, RoutedEventArgs e)
         {
-
+            if (currentOpponent != null)
+            {
+                writer.WriteLine($"START_MATCH:{currentOpponent}");
+            }
+            else
+            {
+                MessageBox.Show("Errorea: Oponentea ez da zehaztu");
+            }
         }
     }
 }

@@ -265,5 +265,33 @@ namespace txuribeltz_server
                 return null;
             }
         }
+
+        //erabiltzaile baten eloa lortzeko
+        public static string eloLortu(string erabiltzailea)
+        {
+            string elo = "0";
+            if (dataSource == null)
+            {
+                Console.WriteLine("Ez dago konexiorik sortuta");
+                return elo;
+            }
+            const string query = "SELECT elo FROM erabiltzaileak WHERE TRIM(username) = @erabiltzailea;";
+            try
+            {
+                using var conn = dataSource.OpenConnection(); // datu basera konektatzen da
+                using var cmd = new NpgsqlCommand(query, conn);
+                cmd.Parameters.AddWithValue("@erabiltzailea", erabiltzailea);
+                using var reader = cmd.ExecuteReader();
+                while (reader.Read())
+                {
+                    elo = elo = reader.GetInt32(0).ToString();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Errorea erabiltzaileak kargatzerakoan: {ex.Message}");
+            }
+            return elo;
+        }
     }
 }

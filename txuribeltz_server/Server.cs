@@ -13,7 +13,8 @@ public class Server
     private static readonly List<BezeroKonektatuaDatuBasean> zerbitzarikoBezeroak = [];
     // gehienezko bezero kopurua
     private const int MaxBezeroak = 10;
-    private static List<string> kolanDaudenErabiltzaileak = new();
+    // Kolara espero dauden bezeroak
+    private static readonly List<BezeroKonektatuaDatuBasean> kolanDaudenErabiltzaileak = [];
 
     public static async Task Main(string[] args)
     {
@@ -101,6 +102,7 @@ public class Server
         finally
         {
             KenduBezeroa(logeatutakoBezeroa);
+            KenduKolatik(logeatutakoBezeroa);
             reader?.Close();
             writer?.Close();
             socketCliente?.Close();
@@ -144,7 +146,7 @@ public class Server
 
                 if (!string.IsNullOrEmpty(emaitza))
                 {
-                    writer.WriteLine(emaitza);
+                    writer.WriteLine(emaitza); //DATA:erabiltzailea:elo:partidakJokatu:partidakIrabazi
                 }
                 else
                 {
@@ -153,14 +155,50 @@ public class Server
                 break;
 
             case "FIND_MATCH":
-                // partida bilatzen ari dela adierazi
-                Console.WriteLine($"Erabiltzailea {logeatutakoBezeroa.Erabiltzailea} partida bilatzen");
-                //bezeroa kolan gehitu
-                lock (lockObject)
+                if (logeatutakoBezeroa != null)
                 {
-                    kolanDaudenErabiltzaileak.Add(logeatutakoBezeroa.Erabiltzailea);
-                    logeatutakoBezeroa.Elo = mezuarenzatiak[1];
-                    //BUKATU GABE
+                    Console.WriteLine($"DEBUG: {logeatutakoBezeroa.Erabiltzailea} partida bilatzen");
+                    GehituKolara(logeatutakoBezeroa);
+
+                    // Bilatu aurkalaria
+                    var aurkalaria = AurkituAurkalaria(logeatutakoBezeroa);
+                    if (aurkalaria != null)
+                    {
+                        Console.WriteLine($"DEBUG: Partidua aurkitu - {logeatutakoBezeroa.Erabiltzailea} vs {aurkalaria.Erabiltzailea}");
+
+                        // Lortu aurkalariaren datuak
+                        string? aurkalariElo = databaseOperations.eloLortu(aurkalaria.Erabiltzailea);
+                        // Lortu logeatuaren datuak
+                        string? logeatuaElo = databaseOperations.eloLortu(logeatutakoBezeroa.Erabiltzailea);
+
+                        if (!string.IsNullOrEmpty(aurkalariElo) && !string.IsNullOrEmpty(logeatuaElo))
+                        {
+                            // Bidali aurkalariaren datuak logeatuari
+                            writer.WriteLine($"MATCH_FOUND:{aurkalaria.Erabiltzailea}:{aurkalariElo}");
+                            Console.WriteLine($"DEBUG: {logeatutakoBezeroa.Erabiltzailea} jakin dezan aurkalaria: {aurkalaria.Erabiltzailea}");
+
+                            // Bidali logeatuaren datuak aurkariari
+                            aurkalaria.Writer.WriteLine($"MATCH_FOUND:{logeatutakoBezeroa.Erabiltzailea}:{logeatuaElo}");
+                            Console.WriteLine($"DEBUG: {aurkalaria.Erabiltzailea} jakin dezan aurkalaria: {logeatutakoBezeroa.Erabiltzailea}");
+                        }
+
+                        // Kendu biak kolatik
+                        KenduKolatik(logeatutakoBezeroa);
+                        KenduKolatik(aurkalaria);
+                    }
+                    else
+                    {
+                        Console.WriteLine($"DEBUG: {logeatutakoBezeroa.Erabiltzailea} itxaroten, opositorerik ez");
+                    }
+                }
+                break;
+
+            case "START_MATCH":
+                if (logeatutakoBezeroa != null && mezuarenzatiak.Length == 2)
+                {
+                    string oponentea = mezuarenzatiak[1];
+                    Console.WriteLine($"DEBUG: Partidua hasi - {logeatutakoBezeroa.Erabiltzailea} vs {oponentea}");
+                    writer.WriteLine("MATCH_STARTED");
                 }
                 break;
 
@@ -175,6 +213,8 @@ public class Server
         return logeatutakoBezeroa;
     }
 
+    // Bezeroa datu basean autentikatzen du eta konprobazioak egiten ditu, dena ondo badago,
+    // bezeroa logeatuta itzultzen du
     private static async Task<BezeroKonektatuaDatuBasean?> LoginKudeatu(
 
         string[] mezuarenzatiak,
@@ -217,6 +257,7 @@ public class Server
         return bezeroBerria;
     }
 
+    // Bezero berria sortzen du datu basean
     private static Task SignupKudeatu(string[] mezuarenzatiak, StreamWriter writer)
     {
         string erabiltzailea = mezuarenzatiak[1];
@@ -229,6 +270,7 @@ public class Server
         return Task.CompletedTask;
     }
 
+    // Admin erabiltzaileak erabiltzaileen zerrenda eskatzen duenean, datu baseko erabiltzaileak kargatu eta bidaltzen ditu
     private static void GetUsersKudeatu(BezeroKonektatuaDatuBasean logeatutakoBezeroa, StreamWriter writer)
     {
         Console.WriteLine($"Admin: {logeatutakoBezeroa.Erabiltzailea} erabiltzaile zerrenda eskatzen");
@@ -241,6 +283,7 @@ public class Server
         Console.WriteLine($"Erabiltzaile zerrenda bidalita: {erabiltzaileak.Count} erabiltzaile");
     }
 
+    // egiaztatu erabiltzailea jadanik logeatuta dagoen
     private static bool ErabiltzaileaLogeatuta(string erabiltzailea)
     {
         lock (lockObject)
@@ -249,6 +292,7 @@ public class Server
         }
     }
 
+    //bezeroa zerbitzarian gehitu
     private static void GehituBezeroa(BezeroKonektatuaDatuBasean bezeroa)
     {
         lock (lockObject)
@@ -258,6 +302,7 @@ public class Server
         }
     }
 
+    // Bezeroa zerbitzaritik kendu
     private static void KenduBezeroa(BezeroKonektatuaDatuBasean? bezeroa)
     {
         if (bezeroa == null) return;
@@ -267,6 +312,44 @@ public class Server
             zerbitzarikoBezeroak.Remove(bezeroa);
             Console.WriteLine($"Bezeroa {bezeroa.Erabiltzailea} zerrendatik kenduta");
             Console.WriteLine($"LOGEATUTAKO BEZERO KOPURUA: {zerbitzarikoBezeroak.Count}");
+        }
+    }
+
+    // Bezeroa kolara gehitu
+    private static void GehituKolara(BezeroKonektatuaDatuBasean bezeroa)
+    {
+        lock (lockObject)
+        {
+            if (!kolanDaudenErabiltzaileak.Contains(bezeroa))
+            {
+                kolanDaudenErabiltzaileak.Add(bezeroa);
+                Console.WriteLine($"DEBUG: {bezeroa.Erabiltzailea} kolara gehituta. Kolako kopurua: {kolanDaudenErabiltzaileak.Count}");
+            }
+        }
+    }
+
+
+    // Kolatik bezeroa kendu
+    private static void KenduKolatik(BezeroKonektatuaDatuBasean? bezeroa)
+    {
+        if (bezeroa == null) return;
+
+        lock (lockObject)
+        {
+            kolanDaudenErabiltzaileak.Remove(bezeroa);
+            Console.WriteLine($"DEBUG: {bezeroa.Erabiltzailea} kolatik kenduta. Kolako kopurua: {kolanDaudenErabiltzaileak.Count}");
+        }
+    }
+
+    //Kolan dauden erabiltzaileen artean aurkitu aurkalaria, nilatzen ari den bezeroa ez den beste bat
+    private static BezeroKonektatuaDatuBasean? AurkituAurkalaria(BezeroKonektatuaDatuBasean bezeroa)
+    {
+        lock (lockObject)
+        {
+            // Kolan dauden erabiltzaileen zerrendatik, bezeroaren erabiltzailea EZ den lehenengoa bilatzen du.
+            // Baldintza betetzen duenik ez badago, null itzultzen du.
+            var aurkalaria = kolanDaudenErabiltzaileak.FirstOrDefault(b => b.Erabiltzailea != bezeroa.Erabiltzailea);
+            return aurkalaria;
         }
     }
 }

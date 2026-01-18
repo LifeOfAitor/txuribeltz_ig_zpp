@@ -55,7 +55,7 @@ namespace txuribeltz
                             Dispatcher.Invoke(() =>
                             {
                                 
-                                // Process authentication responses
+                                // Zerbitzariaren aginduak kudeatu
                                 if (line.StartsWith("LOGIN_OK"))
                                 {
                                     logeatuta = true;
@@ -63,8 +63,8 @@ namespace txuribeltz
                                     string userType = parts.Length > 1 ? parts[1] : "user";
                                     
                                     txt_mezuak.Text = "Login arrakastatsua!";
-                                    
-                                    // Stop listening in LoginWindow
+
+                                    // lehio honetatik ez entzun gehiago zerbitzariari
                                     shouldListen = false;
                                     
                                     // Ireki bakoitzaren lehioa
