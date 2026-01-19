@@ -146,12 +146,22 @@ public class Server
 
                 if (!string.IsNullOrEmpty(emaitza))
                 {
-                    writer.WriteLine(emaitza); //DATA:erabiltzailea:elo:partidakJokatu:partidakIrabazi
+                    writer.WriteLine(emaitza); //DATA:erabiltzailea:elo:partidakJokatu:partidakIrabazi:winrate
                 }
                 else
                 {
                     Console.WriteLine($"ERROR:{logeatutakoBezeroa.Erabiltzailea} datuak ez dira aurkitu");
                 }                    
+                break;
+
+            case "TOP_10":
+                List<string> erabiltzaileak = databaseOperations.lortuTOP10();
+
+                string mezuaTop10 = string.Join(";", erabiltzaileak);
+
+                //Console.WriteLine($"TOP10:{mezuaTop10}");
+                writer.WriteLine($"TOP10:{mezuaTop10}");
+
                 break;
 
             case "FIND_MATCH":

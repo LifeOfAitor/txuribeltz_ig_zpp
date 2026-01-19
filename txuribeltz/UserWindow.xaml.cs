@@ -26,6 +26,7 @@ namespace txuribeltz
             InitializeComponent();
             hasiMezuakEntzuten();
             kargatuErabiltzailea();
+            kargatuTOP10();
         }
 
         private void hasiMezuakEntzuten()
@@ -47,7 +48,7 @@ namespace txuribeltz
                 {
                     Dispatcher.Invoke(() =>
                     {
-                        MessageBox.Show($"Konexioa galdu da: {ex.Message}");
+                        MessageBox.Show($"Konexioa galdu da zerbitzariarekin: {ex.Message}");
                         this.Close();
                     });
                 }
@@ -68,6 +69,18 @@ namespace txuribeltz
                 MessageBox.Show($"Errorea erabiltzailearen informazioa eskatzean: {ex.Message}");
             }
         }
+        private void kargatuTOP10()
+        {
+            try
+            {
+                // eskatu gure erabiltzailearen informazioa
+                writer.WriteLine($"TOP_10:");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Errorea top 10 informazioa eskatzean: {ex.Message}");
+            }
+        }
 
         private void prozesatuMezua(string mezua)
         {
@@ -86,7 +99,7 @@ namespace txuribeltz
                             lblElo.Text = mezuarenzatiak[2];
                             lblIrabazita.Text = mezuarenzatiak[3];
                             lblGalduta.Text = mezuarenzatiak[4];
-                            lblWinRate.Text = $"{mezuarenzatiak[5]}%";
+                            lblWinRate.Text = $"{mezuarenzatiak[5]}";
                         });
                     break;
 
@@ -118,6 +131,26 @@ namespace txuribeltz
                         // Ireki match window (etorkizunean)
                         // new MatchWindow(username, currentOpponent).Show();
                         // this.Close();
+                    });
+                    break;
+
+                    case "TOP10":
+                    List<string> erabiltzaileak = mezuarenzatiak[1].Split(';').ToList();
+                    Dispatcher.Invoke(() =>
+                    {
+                        topJokalariakPanel.Children.Clear();
+                        foreach (string erabiltzailea in erabiltzaileak)
+                        {
+                            string[] datuak = erabiltzailea.Split('|');
+                            TextBlock txtBlock = new TextBlock
+                            {
+                                Text = $"{datuak[0].ToUpper()} : {datuak[1]}",
+                                FontSize = 16,
+                                Margin = new Thickness(5),
+                                Foreground = Brushes.White
+                            };
+                            topJokalariakPanel.Children.Add(txtBlock);
+                        }
                     });
                     break;
 

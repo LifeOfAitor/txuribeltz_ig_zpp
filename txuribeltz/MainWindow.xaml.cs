@@ -100,7 +100,7 @@ namespace txuribeltz
                         {
                             Dispatcher.Invoke(() =>
                             {
-                                txt_mezuak.Text += "Bezeroa deskonektatua\n";
+                                txt_erroreak.Text += "Bezeroa deskonektatua zerbitzaritik\n";
                             });
                         }
                     }

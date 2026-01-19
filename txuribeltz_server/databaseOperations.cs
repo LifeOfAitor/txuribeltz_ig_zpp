@@ -248,13 +248,15 @@ namespace txuribeltz_server
                 int galduak = reader.GetInt32(3);
                 double winrate = reader.IsDBNull(4) ? 0.0 : reader.GetDouble(4);
 
-                string erantzuna = $"DATA:{username}:{elo}:{irabaziak}:{galduak}:{winrate}";
+                int winrateBorobildu = (int)Math.Round(winrate*100, MidpointRounding.AwayFromZero);
+
+                string erantzuna = $"DATA:{username}:{elo}:{irabaziak}:{galduak}:{winrateBorobildu}%";
                 Console.WriteLine($"""
                                     {erabiltzailea.ToUpper()} erabiltzailearen informazioa: 
                                         ELO:{elo}
                                         IRABAZIAK:{irabaziak}
                                         GALDUAK:{galduak}
-                                        WINRATE:{winrate*100}%
+                                        WINRATE:{winrateBorobildu}%
                                     """);
 
                 return erantzuna;
@@ -292,6 +294,33 @@ namespace txuribeltz_server
                 Console.WriteLine($"Errorea erabiltzaileak kargatzerakoan: {ex.Message}");
             }
             return elo;
+        }
+
+        public static List<string> lortuTOP10()
+        {
+            List<string> top10 = new List<string>();
+            if (dataSource == null)
+            {
+                Console.WriteLine("Ez dago konexiorik sortuta");
+                return top10;
+            }
+            const string query = "SELECT TRIM(username), elo FROM erabiltzaileak ORDER BY elo DESC LIMIT 10;";
+            try
+            {
+                using var conn = dataSource.OpenConnection(); // datu basera konektatzen da
+                using var cmd = new NpgsqlCommand(query, conn);
+                using var reader = cmd.ExecuteReader();
+                while (reader.Read())
+                {
+                    string linea = $"{reader.GetString(0)}|{reader.GetInt32(1)}";
+                    top10.Add(linea);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Errorea TOP 10 kargatzerakoan: {ex.Message}");
+            }
+            return top10;
         }
     }
 }
