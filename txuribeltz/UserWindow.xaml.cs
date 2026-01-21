@@ -13,16 +13,18 @@ namespace txuribeltz
         //private bool partidaAurkituta = false;
         private StreamWriter writer;
         private StreamReader reader;
-        private string username;
+        private string erabiltzailea;
+        private string erabiltzaileaElo;
         private string? currentOpponent;
         private string? currentOpponentElo;
+        private bool shouldListen = true;
 
 
-        public UserWindow(StreamReader reader, StreamWriter writer, string username)
+        public UserWindow(StreamReader reader, StreamWriter writer, string erabiltzailea)
         {
             this.reader = reader;
             this.writer = writer;
-            this.username = username;
+            this.erabiltzailea = erabiltzailea;
             InitializeComponent();
             hasiMezuakEntzuten();
             kargatuErabiltzailea();
@@ -36,7 +38,7 @@ namespace txuribeltz
                 try
                 {
                     string line;
-                    while ((line = reader.ReadLine()) != null)
+                    while (shouldListen && (line = reader.ReadLine()) != null)
                     {
                         Dispatcher.Invoke(() =>
                         {
@@ -97,6 +99,7 @@ namespace txuribeltz
                             txt_username.Text = mezuarenzatiak[1].ToUpper();
                             lblUsername.Text = mezuarenzatiak[1];
                             lblElo.Text = mezuarenzatiak[2];
+                            erabiltzaileaElo = mezuarenzatiak[2];
                             lblIrabazita.Text = mezuarenzatiak[3];
                             lblGalduta.Text = mezuarenzatiak[4];
                             lblWinRate.Text = $"{mezuarenzatiak[5]}";
@@ -127,10 +130,12 @@ namespace txuribeltz
                 case "MATCH_STARTED":
                     Dispatcher.Invoke(() =>
                     {
-                        MessageBox.Show($"Partidua hasi da {currentOpponent} aurka!");
-                        // Ireki match window (etorkizunean)
-                        // new MatchWindow(username, currentOpponent).Show();
-                        // this.Close();
+                        // lehio honetatik ez entzun gehiago zerbitzariari
+                        shouldListen = false;
+
+                        // Ireki jokuaren lehioa, bertatik kudeatuko da jokoaren logika guztia eta lehio hau itxi
+                        new GameWindow(reader, writer, erabiltzailea, erabiltzaileaElo, currentOpponent, currentOpponentElo).Show();
+                        this.Close();
                     });
                     break;
 
@@ -155,7 +160,6 @@ namespace txuribeltz
                     break;
 
                 default:
-                    Console.WriteLine($"DEBUG: Jasotako mezua: {mezua}");
                     break;
             }
         }
@@ -174,7 +178,7 @@ namespace txuribeltz
         private void SaveChanges_Click(object sender, RoutedEventArgs e)
         {
             // Bidali pasahitza aldatzeko mezua zerbitzariari
-            writer.WriteLine($"CHANGE_P:{username}:{txtNewPassword.Password}");
+            writer.WriteLine($"CHANGE_P:{erabiltzailea}:{txtNewPassword.Password}");
             editFormPanel.Visibility = Visibility.Collapsed;
         }
 

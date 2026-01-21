@@ -322,5 +322,40 @@ namespace txuribeltz_server
             }
             return top10;
         }
+
+        //Partida bat gordetzeko eta jokalarien elo-ak eguneratzeko
+        public static void partidaGorde(string player1, string player2, string winner, string loser)
+        {
+            if (dataSource == null)
+            {
+                Console.WriteLine("Ez dago konexiorik sortuta");
+                return;
+            }
+            const string query = """
+                                INSERT INTO partidak (player1_id, player2_id, winner_id, played_at)
+                                VALUES (
+                                    (SELECT id FROM erabiltzaileak WHERE TRIM(username) = @player1),
+                                    (SELECT id FROM erabiltzaileak WHERE TRIM(username) = @player2),
+                                    (SELECT id FROM erabiltzaileak WHERE TRIM(username) = @winner),
+                                    NOW()
+                                );
+                                UPDATE erabiltzaileak SET elo = elo+100 WHERE TRIM(username) = @winner;
+                                UPDATE erabiltzaileak SET elo = elo-100 WHERE TRIM(username) = @loser;
+                                """;
+            try
+            {
+                using var conn = dataSource.OpenConnection(); // datu basera konektatzen da
+                using var cmd = new NpgsqlCommand(query, conn);
+                cmd.Parameters.AddWithValue("@player1", player1);
+                cmd.Parameters.AddWithValue("@player2", player2);
+                cmd.Parameters.AddWithValue("@winner", winner);
+                cmd.ExecuteNonQuery();
+                Console.WriteLine($"Partida ondo gorde da: {player1} vs {player2}, irabazlea: {winner}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Errorea partida gordetzerakoan: {ex.Message}");
+            }
+        }
     }
 }

@@ -9,12 +9,14 @@ using txuribeltz_server;
 public class Server
 {
     private static readonly object lockObject = new();
-    // Konektatutako bezeroen zerrenda (zerbitzarian baina logeatu gabe)
+    // Konektatutako bezeroen zerrenda (zerbitzarian bai baina autentikatu gabe)
     private static readonly List<BezeroKonektatuaDatuBasean> zerbitzarikoBezeroak = [];
     // gehienezko bezero kopurua
     private const int MaxBezeroak = 10;
-    // Kolara espero dauden bezeroak
+    // Kolan itxaroten dauden bezeroak
     private static readonly List<BezeroKonektatuaDatuBasean> kolanDaudenErabiltzaileak = [];
+    // Martxan dauden partiden Diktionarioa, bertan Partida objektuak gordeko dira
+    private static readonly Dictionary<string, Partida> partidaAktiboak = new();
 
     public static async Task Main(string[] args)
     {
@@ -75,6 +77,8 @@ public class Server
             string? line;
 
             // denbora guztian egongo da entzuten zerbitzaria bezeroaren mezuei
+            // 'await' erabilita haria blokeatu gabe itxaroten egongo da mezua iritsi arte
+            // 'async' erabiliko da UI blokeatuta ez geratzeko
             while ((line = await reader.ReadLineAsync()) != null)
             {
                 // mezua komandoak izango dira adibidez:
@@ -85,9 +89,10 @@ public class Server
 
                 // Bezeroaren komandoa asinkronoki prozesatzen du eta saioaren egoera (logeatutako bezeroa) eguneratzen du; 
                 // 'await' erabilita haria blokeatu gabe itxaroten da emaitza lortu arte.
-                // beteko da informazioa behin logeatzen garenean 
+                // Bezeroaren informazioa beteko da behin logeatzen garenean 
                 logeatutakoBezeroa = await ProzesatuAgindua(agindua, mezuarenzatiak, writer, reader, socketCliente, logeatutakoBezeroa);
 
+                // bezeroak deskonexioa eskatzen duenean bukletik aterako gara
                 if (agindua == "DISCONNECT")
                 {
                     Console.WriteLine("Bezeroak deskonexioa eskatu du");
@@ -101,6 +106,7 @@ public class Server
         }
         finally
         {
+            // Bezeroa deskonektatu eta garbitu baliabideak
             KenduBezeroa(logeatutakoBezeroa);
             KenduKolatik(logeatutakoBezeroa);
             reader?.Close();
@@ -159,7 +165,7 @@ public class Server
 
                 string mezuaTop10 = string.Join(";", erabiltzaileak);
 
-                //Console.WriteLine($"TOP10:{mezuaTop10}");
+                //Console.WriteLine($"DEBUG TOP10:{mezuaTop10}");
                 writer.WriteLine($"TOP10:{mezuaTop10}");
 
                 break;
@@ -174,7 +180,7 @@ public class Server
                     var aurkalaria = AurkituAurkalaria(logeatutakoBezeroa);
                     if (aurkalaria != null)
                     {
-                        Console.WriteLine($"DEBUG: Partidua aurkitu - {logeatutakoBezeroa.Erabiltzailea} vs {aurkalaria.Erabiltzailea}");
+                        //Console.WriteLine($"DEBUG: Partidua aurkitu - {logeatutakoBezeroa.Erabiltzailea} vs {aurkalaria.Erabiltzailea}");
 
                         // Lortu aurkalariaren datuak
                         string? aurkalariElo = databaseOperations.eloLortu(aurkalaria.Erabiltzailea);
@@ -185,30 +191,149 @@ public class Server
                         {
                             // Bidali aurkalariaren datuak logeatuari
                             writer.WriteLine($"MATCH_FOUND:{aurkalaria.Erabiltzailea}:{aurkalariElo}");
-                            Console.WriteLine($"DEBUG: {logeatutakoBezeroa.Erabiltzailea} jakin dezan aurkalaria: {aurkalaria.Erabiltzailea}");
+                            //Console.WriteLine($"DEBUG: {logeatutakoBezeroa.Erabiltzailea} jakin dezan aurkalaria: {aurkalaria.Erabiltzailea}");
 
                             // Bidali logeatuaren datuak aurkariari
                             aurkalaria.Writer.WriteLine($"MATCH_FOUND:{logeatutakoBezeroa.Erabiltzailea}:{logeatuaElo}");
-                            Console.WriteLine($"DEBUG: {aurkalaria.Erabiltzailea} jakin dezan aurkalaria: {logeatutakoBezeroa.Erabiltzailea}");
+                            //Console.WriteLine($"DEBUG: {aurkalaria.Erabiltzailea} jakin dezan aurkalaria: {logeatutakoBezeroa.Erabiltzailea}");
                         }
 
-                        // Kendu biak kolatik
+                        // Kendu biak kolatik partida aurkitu dutelako
                         KenduKolatik(logeatutakoBezeroa);
                         KenduKolatik(aurkalaria);
                     }
                     else
                     {
-                        Console.WriteLine($"DEBUG: {logeatutakoBezeroa.Erabiltzailea} itxaroten, opositorerik ez");
+                        Console.WriteLine($"DEBUG: {logeatutakoBezeroa.Erabiltzailea} itxaroten, aurkalaririk ez");
                     }
                 }
                 break;
 
             case "START_MATCH":
-                if (logeatutakoBezeroa != null && mezuarenzatiak.Length == 2)
+                Console.WriteLine($"DEBUG: START_MATCH jaso - mezuarenzatiak.Length: {mezuarenzatiak.Length}");
+                if (logeatutakoBezeroa != null && mezuarenzatiak.Length >= 2)
                 {
                     string oponentea = mezuarenzatiak[1];
-                    Console.WriteLine($"DEBUG: Partidua hasi - {logeatutakoBezeroa.Erabiltzailea} vs {oponentea}");
-                    writer.WriteLine("MATCH_STARTED");
+                    var aurkalaria = zerbitzarikoBezeroak.FirstOrDefault(b => b.Erabiltzailea == oponentea);
+
+                    if (aurkalaria != null)
+                    {
+                        // Sortu PartidaId name1_name2 eran (alfabetikoki ordenatuta)
+                        var izenak = new[] { logeatutakoBezeroa.Erabiltzailea, oponentea };
+                        Array.Sort(izenak);
+                        string partidaID = $"{izenak[0]}_{izenak[1]}";
+
+                        lock (lockObject)
+                        {
+                            // Egiaztatu partida ez dagoela jadanik
+                            if (partidaAktiboak.ContainsKey(partidaID))
+                            {
+                                Console.WriteLine($"DEBUG: Partida {partidaID} dagoeneko existitzen da");
+                                writer.WriteLine("ERROR:Partida dagoeneko hasita dago");
+                                break;
+                            }
+
+                            // Sortu partida berria
+                            var partida = new Partida(partidaID, logeatutakoBezeroa, aurkalaria);
+                            partidaAktiboak[partidaID] = partida;
+
+                            // Gorde PartidaID bi bezeroetan
+                            logeatutakoBezeroa.PartidaID = partidaID;
+                            aurkalaria.PartidaID = partidaID;
+
+                            Console.WriteLine($"DEBUG: Partida objetua sortuta - {partidaID}");
+                        }
+
+                        // Bidali biei partida hasi dela
+                        partidaAktiboak[partidaID].BidaliBieiei($"MATCH_STARTED:{partidaID}");
+                        Console.WriteLine($"DEBUG: MATCH_STARTED bidalita bieei - {partidaID}");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"DEBUG: ERROREA - Aurkalaria {oponentea} ez da aurkitu zerbitzarian");
+                        writer.WriteLine("ERROR:Aurkalaria ez da aurkitu");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine($"DEBUG: START_MATCH - parametro falta edo bezeroa null");
+                }
+                break;
+
+            case "CHAT":
+                if (logeatutakoBezeroa != null && mezuarenzatiak.Length >= 2)
+                {
+                    string mezua = string.Join(":", mezuarenzatiak.Skip(1));
+                    var partida = LortuBezeroPartida(logeatutakoBezeroa);
+
+                    if (partida != null)
+                    {
+                        // Partida objektuak kudeatzen du!
+                        partida.ProzesatuChatMezua(logeatutakoBezeroa.Erabiltzailea, mezua);
+                    }
+                    else
+                    {
+                        Console.WriteLine($"DEBUG: {logeatutakoBezeroa.Erabiltzailea} ez dago partidarik");
+                        writer.WriteLine("ERROR:Ez zaude partidarik jolasten");
+                    }
+                }
+                break;
+
+            case "MOVE":
+                if (logeatutakoBezeroa != null && mezuarenzatiak.Length >= 2)
+                {
+                    // MOVE:row,col (adibidez: MOVE:7,7)
+                    string[] posizioa = mezuarenzatiak[1].Split(',');
+                    if (posizioa.Length == 2 &&
+                        int.TryParse(posizioa[0], out int row) &&
+                        int.TryParse(posizioa[1], out int col))
+                    {
+                        var partida = LortuBezeroPartida(logeatutakoBezeroa);
+
+                        if (partida != null)
+                        {
+                            // Partida objektuak kudeatzen du (txanda, baliozkotzea, irabazlea, etab.)
+                            partida.ProzesatuMugimendua(logeatutakoBezeroa.Erabiltzailea, row, col);
+                        }
+                        else
+                        {
+                            Console.WriteLine($"DEBUG: {logeatutakoBezeroa.Erabiltzailea} ez dago partidarik");
+                            writer.WriteLine("ERROR:Ez zaude partidarik jolasten");
+                        }
+                    }
+                    else
+                    {
+                        writer.WriteLine("ERROR:Mugimendua formatu okerra");
+                    }
+                }
+                break;
+
+            case "SURRENDER":
+                if (logeatutakoBezeroa != null)
+                {
+                    var partida = LortuBezeroPartida(logeatutakoBezeroa);
+                    if (partida != null)
+                    {
+                        string? irabazlea = partida.LortuAurkalaria(logeatutakoBezeroa.Erabiltzailea);
+                        partida.AmaituPartida(irabazlea);
+                        KenduPartida(partida.PartidaID);
+                        Console.WriteLine($"DEBUG: {logeatutakoBezeroa.Erabiltzailea} amore eman du");
+                    }
+                }
+                break;
+
+            case "LEAVE_MATCH":
+                if (logeatutakoBezeroa != null)
+                {
+                    var partida = LortuBezeroPartida(logeatutakoBezeroa);
+                    if (partida != null)
+                    {
+                        // Utzi = galdu
+                        string? irabazlea = partida.LortuAurkalaria(logeatutakoBezeroa.Erabiltzailea);
+                        partida.AmaituPartida(irabazlea);
+                        KenduPartida(partida.PartidaID);
+                        Console.WriteLine($"DEBUG: {logeatutakoBezeroa.Erabiltzailea} partida utzi du");
+                    }
                 }
                 break;
 
@@ -356,10 +481,42 @@ public class Server
     {
         lock (lockObject)
         {
-            // Kolan dauden erabiltzaileen zerrendatik, bezeroaren erabiltzailea EZ den lehenengoa bilatzen du.
-            // Baldintza betetzen duenik ez badago, null itzultzen du.
-            var aurkalaria = kolanDaudenErabiltzaileak.FirstOrDefault(b => b.Erabiltzailea != bezeroa.Erabiltzailea);
-            return aurkalaria;
+            // Bilatu aurkalaria, listan dauden erabiltzaileetatik, baina ez gu
+            var opositora = kolanDaudenErabiltzaileak.FirstOrDefault(b => b.Erabiltzailea != bezeroa.Erabiltzailea);
+            return opositora;
+        }
+    }
+
+    // BERRIA: Bezeroaren Partida lortu
+    private static Partida? LortuBezeroPartida(BezeroKonektatuaDatuBasean bezeroa)
+    {
+        if (string.IsNullOrEmpty(bezeroa.PartidaID))
+        {
+            Console.WriteLine($"DEBUG: {bezeroa.Erabiltzailea} ez dauka PartidaId");
+            return null;
+        }
+
+        lock (lockObject)
+        {
+            if (partidaAktiboak.TryGetValue(bezeroa.PartidaID, out var partida))
+            {
+                return partida;
+            }
+        }
+
+        Console.WriteLine($"DEBUG: Partida {bezeroa.PartidaID} ez da aurkitu partidaAktiboak-en");
+        return null;
+    }
+
+    // BERRIA: Partida kendu
+    private static void KenduPartida(string partidaId)
+    {
+        lock (lockObject)
+        {
+            if (partidaAktiboak.Remove(partidaId))
+            {
+                Console.WriteLine($"DEBUG: Partida kenduta: {partidaId}");
+            }
         }
     }
 }

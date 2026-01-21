@@ -9,7 +9,9 @@ public class BezeroKonektatuaDatuBasean
     public string Elo { get; set; }
     public StreamWriter Writer { get; set; }
     public StreamReader Reader { get; set; }
+    public string PartidaID { get; set; }
 
+    // Debugeatzeko erabili daiteke
     public override string ToString()
     {
         return $"Erabiltzailea: {Erabiltzailea}\n";
