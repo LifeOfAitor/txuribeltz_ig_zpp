@@ -260,15 +260,16 @@ public class Server
                 }
                 break;
 
+            // Txat mezua jaso eta partida objektuari pasatu mezua kudeatzeko
             case "CHAT":
                 if (logeatutakoBezeroa != null && mezuarenzatiak.Length >= 2)
                 {
-                    string mezua = string.Join(":", mezuarenzatiak.Skip(1));
+                    string mezua = string.Join(":", mezuarenzatiak[1]);
                     var partida = LortuBezeroPartida(logeatutakoBezeroa);
 
                     if (partida != null)
                     {
-                        // Partida objektuak kudeatzen du!
+                        // Partida objektuak kudeatzen du
                         partida.ProzesatuChatMezua(logeatutakoBezeroa.Erabiltzailea, mezua);
                     }
                     else
@@ -292,7 +293,7 @@ public class Server
 
                         if (partida != null)
                         {
-                            // Partida objektuak kudeatzen du (txanda, baliozkotzea, irabazlea, etab.)
+                            // Partida objektuak kudeatzen du
                             partida.ProzesatuMugimendua(logeatutakoBezeroa.Erabiltzailea, row, col);
                         }
                         else
@@ -308,7 +309,7 @@ public class Server
                 }
                 break;
 
-            case "SURRENDER":
+            case "WIN":
                 if (logeatutakoBezeroa != null)
                 {
                     var partida = LortuBezeroPartida(logeatutakoBezeroa);
@@ -487,7 +488,7 @@ public class Server
         }
     }
 
-    // BERRIA: Bezeroaren Partida lortu
+    // Bezeroaren partida lortu partidaAktiboak diktionarioatik
     private static Partida? LortuBezeroPartida(BezeroKonektatuaDatuBasean bezeroa)
     {
         if (string.IsNullOrEmpty(bezeroa.PartidaID))
@@ -508,7 +509,7 @@ public class Server
         return null;
     }
 
-    // BERRIA: Partida kendu
+    // Partida bukatu denean kendu partidaAktiboak diktionarioatik
     private static void KenduPartida(string partidaId)
     {
         lock (lockObject)

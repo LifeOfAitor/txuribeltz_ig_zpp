@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:txuribeltz"
         mc:Ignorable="d"
-        Height="500" Width="600"
+        Height="550" Width="600"
         WindowStartupLocation="CenterScreen"
         ResizeMode="NoResize"
         Background="#FF2C2C2C"
@@ -45,6 +45,11 @@
                     FontWeight="Bold" Height="30" 
                     Click="newUser"
                     Margin="0, 10, 0, 0"/>
+            <Button x:Name="btnKonektatu" Content="Zerbitzarira konektatu" 
+                    Background="CadetBlue" Foreground="White"
+                    FontWeight="Bold" Height="30" 
+                    Click="zerbitzariraKonektatu"
+                    Margin="0, 10, 0, 0"/>
         </StackPanel>
 
         <!-- Erroreak agertuko dira hemen, baldin badaude -->
@@ -52,7 +57,7 @@
                    HorizontalAlignment="Center" 
                    FontSize="12" Foreground="PaleVioletRed" Margin="0,5,0,0"/>
         <TextBlock x:Name="txt_mezuak" Grid.Row="2" Text="" 
-                   HorizontalAlignment="Left" 
-                   FontSize="12" Foreground="ForestGreen" Margin="246,21,0,-16"/>
+                   HorizontalAlignment="Center" 
+                   FontSize="12" Foreground="ForestGreen" Margin="0,5,0,0"/>
     </Grid>
 </Window>

@@ -35,6 +35,8 @@ public class Partida
         Console.WriteLine($"DEBUG: Partida objetua sortu da errorerik gabe: {PartidaID} ({jokalari1.Erabiltzailea} vs {jokalari2.Erabiltzailea})");
     }
 
+    // partidaren barruan dauden bi erabiltzaileei mezua bidaltzeko metodoa
+    // edozein mezu izan daiteke, txat, mugimendua edo beste zeozer
     public void BidaliBieiei(string mezua)
     {
         try
@@ -49,10 +51,13 @@ public class Partida
         }
     }
 
+    // partidaren barruan dagoen erabiltzaile konkretu bati mezua bidaltzeko metodoa
+    // edozein mezu izan daiteke, txat, mugimendua edo beste zeozer
     public void BidaliJokalariari(string erabiltzailea, string mezua)
     {
         try
         {
+            // konprobatu zein den erabiltzailea eta horren arabera mezua bidali
             if (Jokalari1.Erabiltzailea == erabiltzailea)
             {
                 Jokalari1.Writer.WriteLine(mezua);
@@ -61,15 +66,16 @@ public class Partida
             {
                 Jokalari2.Writer.WriteLine(mezua);
             }
-            Console.WriteLine($"DEBUG: [{PartidaID}] Bidalita {erabiltzailea}ri: {mezua}");
+            Console.WriteLine($"DEBUG: [{PartidaID}] Bidalita {erabiltzailea}: {mezua}");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"ERROR: [{PartidaID}] Mezua {erabiltzailea}ri bidaltzean: {ex.Message}");
+            Console.WriteLine($"ERROR: [{PartidaID}] Mezua {erabiltzailea} bidaltzean: {ex.Message}");
         }
     }
 
-    // CHAT MEZUAK KUDEATU (partida barruan)
+    // txateko mezuen kudeaketa, bidaltzailea eta mezua jasotzen ditu eta TxatMezuak listan gordetzen ditu
+    // azkenik biei bidaltzen die mezua
     public void ProzesatuChatMezua(string bidaltzailea, string mezua)
     {
         string chatMezua = $"{bidaltzailea.ToUpper()}: {mezua}";
@@ -80,7 +86,7 @@ public class Partida
         Console.WriteLine($"DEBUG: [{PartidaID}] Chat: {chatMezua}");
     }
 
-    // MUGIMENDUAK KUDEATU (partida barruan!)
+    // partidaren barruan jokalariarekiko mugimendua prozesatzen duen metodoa
     public bool ProzesatuMugimendua(string jokalaria, int row, int col)
     {
         // Egiaztatu txanda
@@ -100,7 +106,15 @@ public class Partida
         }
 
         // Mugimendua egin
-        string pieza = (jokalaria == Jokalari1.Erabiltzailea) ? "B" : "W"; // Black edo White
+        string pieza;
+        if (jokalaria == Jokalari1.Erabiltzailea)
+        {
+            pieza = "B"; // Jokalari1 = Beltzak (Black)
+        }
+        else
+        {
+            pieza = "W"; // Jokalari2 = Zuriak (White)
+        }
         Taula[row, col] = pieza;
 
         string mugimendua = $"{jokalaria}:{row},{col}";
@@ -145,7 +159,7 @@ public class Partida
         Console.WriteLine($"[{PartidaID}] Partida amaitu - Irabazlea: {irabazlea ?? "Berdinketa"}");
 
         // Bidali emaitza bieiei
-        BidaliBieiei($"MATCH_END:{irabazlea}");
+        BidaliJokalariari(irabazlea, "MATCH_END");
 
         // emaitza datubasean gorde
         databaseOperations.partidaGorde(Jokalari1.Erabiltzailea, Jokalari2.Erabiltzailea, Irabazlea, Galtzailea);

@@ -17,7 +17,7 @@ namespace txuribeltz
         private StreamReader reader;
         private string erabiltzailea;
         private string aurkalaria;
-        private Button[,] boardButtons;
+        private Button[,] taulakoBotoiak;
         private bool shouldListen = true;
 
         public GameWindow(StreamReader reader, StreamWriter writer, string erabiltzailea, string erabiltzaileaElo, string aurkalaria, string aurkalariaElo)
@@ -76,6 +76,13 @@ namespace txuribeltz
 
             switch (agindua)
             {
+                case "CHAT":
+                    // CHAT:bidaltzailea:mezua");
+                    string bidaltzailea = mezuarenzatiak[1];
+                    string txat_mezua = mezuarenzatiak[2];
+                    bool isOwn = bidaltzailea.Equals(erabiltzailea, StringComparison.OrdinalIgnoreCase);
+                    gehituTxatMezua(bidaltzailea, txat_mezua, isOwn);
+                    break;
                 default:
                     break;
             }
@@ -84,7 +91,7 @@ namespace txuribeltz
         // modu dinamikoan jokuaren taula sortzeko metodoa
         private void tablaHasi()
         {
-            boardButtons = new Button[15, 15];
+            taulakoBotoiak = new Button[15, 15];
 
             for (int row = 0; row < 15; row++)
             {
@@ -100,7 +107,7 @@ namespace txuribeltz
                     };
 
                     cell.Click += Cell_Click;
-                    boardButtons[row, col] = cell;
+                    taulakoBotoiak[row, col] = cell;
                     gameBoard.Children.Add(cell);
                 }
             }
@@ -112,9 +119,7 @@ namespace txuribeltz
             string position = cell.Tag.ToString();
             
             // Zerbitzariari bidali posizioa
-            // writer.WriteLine($"MOVE:{position}");
-            
-            MessageBox.Show($"Klikatu duzu: {position}");
+            writer.WriteLine($"MOVE:{position}");
         }
 
         private void SendChat_Click(object sender, RoutedEventArgs e)
@@ -130,21 +135,26 @@ namespace txuribeltz
             }
         }
 
+        // Txat mezua bidaltzeko metodoa, zerbitzariari bidaltzen dio eta txatan erakusten du
         private void bidaliMezua()
         {
-            string message = erabiltzailea.ToUpper() + "-> " + txtChatMessage.Text.Trim();
-            if (!string.IsNullOrEmpty(message))
+            string mezua = txtChatMessage.Text.Trim();
+            if (!string.IsNullOrEmpty(mezua))
             {
                 // zerbitzariari bidali
-                writer.WriteLine($"CHAT:{message}");
+                // CHAT:mezua formatua erabiliz
+                // mezua nork bidali duen zerbitzariak kudeatuko du
+                // CHAT:mezua
+                writer.WriteLine($"CHAT:{mezua}");
 
-                // Mezua erakutsi txatan (bakarrik gurea)
-                AddChatMessage(erabiltzailea, message, true);
+                // Guk bidali dugun mezua erakutsi txatan (momentuz ez)
+                //gehituTxatMezua(erabiltzailea, mezua, true);
                 txtChatMessage.Clear();
             }
         }
 
-        private void AddChatMessage(string sender, string message, bool isOwn)
+        //Txat mezua gehituko da erabiltzailearen arabera ezkerrean edo eskuinean eta kolera ezberdinekin
+        private void gehituTxatMezua(string sender, string message, bool isOwn)
         {
             Border messageBorder = new Border
             {
@@ -183,32 +193,32 @@ namespace txuribeltz
             chatScroll.ScrollToBottom();
         }
 
+        // Amore emateko aukera kudeatzen da, bezeroak nahi duenean klikatu dezake
+        // Lehioa itxiko da eta user lehioa irekiko da
         private void Surrender_Click(object sender, RoutedEventArgs e)
         {
             var result = MessageBox.Show("Ziur zaude amore eman nahi duzula?", 
                                          "Amore eman", 
-                                         MessageBoxButton.YesNo, 
-                                         MessageBoxImage.Warning);
+                                         MessageBoxButton.YesNo);
             if (result == MessageBoxResult.Yes)
             {
                 writer.WriteLine($"WIN:{aurkalaria}");
-                this.Close();
                 UserWindow userWin = new UserWindow(reader, writer, erabiltzailea);
+                this.Close();
                 userWin.Show();
             }
         }
 
         private void Leave_Click(object sender, RoutedEventArgs e)
         {
-            var result = MessageBox.Show("Ziur zaude partida utzi nahi duzula? Galdu egingo duzu.", 
-                                         "Partida utzi", 
-                                         MessageBoxButton.YesNo, 
-                                         MessageBoxImage.Warning);
+            var result = MessageBox.Show("Ziur zaude partida utzi nahi duzula? Galdu egingo duzu.",
+                                         "Partida utzi",
+                                         MessageBoxButton.YesNo);
             if (result == MessageBoxResult.Yes)
             {
                 writer.WriteLine($"WIN:{aurkalaria}");
-                this.Close();
                 UserWindow userWin = new UserWindow(reader, writer, erabiltzailea);
+                this.Close();
                 userWin.Show();
             }
         }

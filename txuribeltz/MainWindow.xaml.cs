@@ -22,13 +22,14 @@ namespace txuribeltz
         private Thread listenerThread;
         private bool shouldListen = true;
         private bool logeatuta = false;
+        private bool konexioaEginda = false;
 
         public LoginWindow()
         {
             InitializeComponent();
 
             //zerbitzarira konektatuko gara lehenengo
-            zerbitzariraKonektatu();
+            zerbitzariraKonektatu(); 
         }
 
         public void zerbitzariraKonektatu()
@@ -42,6 +43,8 @@ namespace txuribeltz
                 writer = new StreamWriter(ns, Encoding.UTF8) { AutoFlush = true };
                 reader = new StreamReader(ns, Encoding.UTF8);
 
+                konexioaEginda = true;
+                txt_erroreak.Text = "";
                 txt_mezuak.Text += "Konektatuta zerbitzarira.\n";
 
                 // Lehen konexioan zerbitzarira mezua bidali eta erantzuna jasotzeko.
@@ -101,18 +104,19 @@ namespace txuribeltz
                             Dispatcher.Invoke(() =>
                             {
                                 txt_erroreak.Text += "Bezeroa deskonektatua zerbitzaritik\n";
+                                txt_mezuak.Text = "";
+                                konexioaEginda = false;
                             });
                         }
                     }
                 });
                 listenerThread.IsBackground = true;
                 listenerThread.Start();
-                
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"Ezin izan da konektatu zerbitzarira: {ex.Message}");
-                txt_erroreak.Text = "Ezin izan da konektatu zerbitzarira.";
+                txt_erroreak.Text = "Ezin izan da konektatu zerbitzarira. Konexioa bilatzen...";
             }
         }
 
@@ -125,7 +129,10 @@ namespace txuribeltz
                 if (!logeatuta)
                 {
                     shouldListen = false;
-                    writer.WriteLine("DISCONNECT");
+                    if (client?.Connected == true)
+                    {
+                        writer.WriteLine("DISCONNECT");
+                    }
                     reader?.Close();
                     writer?.Close();
                     ns?.Close();
@@ -209,6 +216,18 @@ namespace txuribeltz
         private void itxiAplikazioa(object sender, System.ComponentModel.CancelEventArgs e)
         {
             zerbitzaritikDeskonektatu();
+        }
+
+        private void zerbitzariraKonektatu(object sender, RoutedEventArgs e)
+        {
+            if (!konexioaEginda)
+            {
+                zerbitzariraKonektatu();
+            }
+            else
+            {
+                txt_mezuak.Text = "Dagoeneko konektatuta zaude zerbitzarira.\n";
+            }
         }
     }
 }
