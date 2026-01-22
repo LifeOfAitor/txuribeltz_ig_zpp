@@ -29,7 +29,6 @@
                             <TextBlock x:Name="lblYourElo" Text="1200" FontSize="14" 
                                        Foreground="#e94560" FontWeight="Bold"/>
                         </StackPanel>
-                        <Border Background="#e94560" Height="3" CornerRadius="2" Margin="0,10,0,0"/>
                     </StackPanel>
                 </Border>
 
@@ -51,7 +50,7 @@
                 <Border Background="#FF2C2C2C" CornerRadius="8" Padding="12" Margin="0,20,0,0">
                     <StackPanel>
                         <TextBlock Text="EGOERA" FontSize="12" Foreground="#94a1b2" FontWeight="SemiBold"/>
-                        <TextBlock x:Name="lblGameStatus" Text="Zure txanda" FontSize="14" 
+                        <TextBlock x:Name="lblGameStatus" Text="" FontSize="14" 
                                    Foreground="#4ecca3" FontWeight="Bold" Margin="0,5,0,0"/>
                     </StackPanel>
                 </Border>
@@ -172,7 +171,7 @@
                     <Button x:Name="btnSendChat" Grid.Column="1" Content="Bidali" 
                             Background="#4ecca3" Foreground="White"
                             FontWeight="Bold" FontSize="16"
-                            Width="50" Height="40"
+                            Width="70" Height="40"
                             BorderThickness="0" Cursor="Hand"
                             Click="SendChat_Click">
                         <Button.Style>

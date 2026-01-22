@@ -67,6 +67,7 @@ namespace txuribeltz
             t.Start();
         }
 
+        // Zerbitzaritik jasotzen diren mezuak kudeatuko dira hemendik
         private void prozesatuMezua(string mezua)
         {
             // Mezuak formatu hau izango du: AGINDUA:informazioa:informazioa...
@@ -76,12 +77,53 @@ namespace txuribeltz
 
             switch (agindua)
             {
+                case "ERROR":
+                    MessageBox.Show(mezuarenzatiak[1]);
+                    break;
+
+                // Txataren barruan bidaltzen diren mezuak kudeatu
                 case "CHAT":
                     // CHAT:bidaltzailea:mezua");
                     string bidaltzailea = mezuarenzatiak[1];
                     string txat_mezua = mezuarenzatiak[2];
                     bool isOwn = bidaltzailea.Equals(erabiltzailea, StringComparison.OrdinalIgnoreCase);
                     gehituTxatMezua(bidaltzailea, txat_mezua, isOwn);
+                    break;
+
+                // Jokalariek egiten dituzten mugimenduak kudeatu
+                case "MOVE":
+                    // Formatua: MOVE:jokalaria:row,col:pieza
+                    string moveJokalaria = mezuarenzatiak[1];
+                    string[] coords = mezuarenzatiak[2].Split(',');
+                    int row = int.Parse(coords[0]);
+                    int col = int.Parse(coords[1]);
+                    string pieza = mezuarenzatiak[3];
+                    // eguneratu taula erakusteko mugimentuak (aldaketak)
+                    eguneratuTaula(row, col, pieza);
+                    break;
+
+                // jokalarien txandak kudeatzeko, txandaren arabera agertuko da textua menuan
+                case "TURN":
+                    string txandakoJokalaria = mezuarenzatiak[1];
+                    bool nireTxanda = txandakoJokalaria.Equals(erabiltzailea, StringComparison.OrdinalIgnoreCase);
+                    // eguneratu txtua bakoitzaren txandaren arabera
+                    lblGameStatus.Text = nireTxanda ? "Zure txanda!" : $"{aurkalaria}-ren txanda";
+                    lblGameStatus.Foreground = nireTxanda ? Brushes.LimeGreen : Brushes.Orange;
+                    break;
+
+                // partida bukatzerakoan egin beharko diren ekintzak kudeatu
+                // mezuak irakurtzen bukatuko du eta erabiltzailearen menura bueltatuko da
+                case "MATCH_END":
+                    string emaitza = mezuarenzatiak.Length > 1 ? mezuarenzatiak[1] : "";
+                    string endMezua = mezuarenzatiak.Length > 2 ? mezuarenzatiak[2] : "Partida amaitu da";
+                    shouldListen = false;
+                    gehituTxatMezua("SYSTEM", endMezua, false);
+                    // partida bukatu dela adieraziko du
+                    MessageBox.Show(endMezua);
+                    // erabiltzaile menura bueltatuko gara
+                    UserWindow userWin = new UserWindow(reader, writer, erabiltzailea);
+                    userWin.Show();
+                    this.Close();
                     break;
                 default:
                     break;
@@ -106,11 +148,28 @@ namespace txuribeltz
                         Cursor = Cursors.Hand
                     };
 
+                    // edozein botoi klikatzean Cell_Click metodoa deituko da
                     cell.Click += Cell_Click;
                     taulakoBotoiak[row, col] = cell;
                     gameBoard.Children.Add(cell);
                 }
             }
+        }
+
+        // Taula eguneratzeko metodoa, pieza bat jartzen du emandako posizioan eta emandako kolorearekin
+        private void eguneratuTaula(int row, int col, string pieza)
+        {
+            Button cell = taulakoBotoiak[row, col];
+            Ellipse stone = new Ellipse
+            {
+                Width = 30,
+                Height = 30,
+                Fill = pieza == "B" ? Brushes.Black : Brushes.White,
+                Stroke = Brushes.Gray,
+                StrokeThickness = 1
+            };
+            cell.Content = stone;
+            cell.IsEnabled = false; // Prevent clicking occupied cells
         }
 
         private void Cell_Click(object sender, RoutedEventArgs e)
@@ -203,9 +262,6 @@ namespace txuribeltz
             if (result == MessageBoxResult.Yes)
             {
                 writer.WriteLine($"WIN:{aurkalaria}");
-                UserWindow userWin = new UserWindow(reader, writer, erabiltzailea);
-                this.Close();
-                userWin.Show();
             }
         }
 
@@ -217,9 +273,6 @@ namespace txuribeltz
             if (result == MessageBoxResult.Yes)
             {
                 writer.WriteLine($"WIN:{aurkalaria}");
-                UserWindow userWin = new UserWindow(reader, writer, erabiltzailea);
-                this.Close();
-                userWin.Show();
             }
         }
     }

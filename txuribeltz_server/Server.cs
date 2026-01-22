@@ -315,10 +315,12 @@ public class Server
                     var partida = LortuBezeroPartida(logeatutakoBezeroa);
                     if (partida != null)
                     {
-                        string? irabazlea = partida.LortuAurkalaria(logeatutakoBezeroa.Erabiltzailea);
+                        string? irabazlea = mezuarenzatiak[1];
                         partida.AmaituPartida(irabazlea);
+                        // bidali irabazleari mezua eta kendu partida
+                        
                         KenduPartida(partida.PartidaID);
-                        Console.WriteLine($"DEBUG: {logeatutakoBezeroa.Erabiltzailea} amore eman du");
+                        Console.WriteLine($"DEBUG: partida bukatuta eta ezabatuta");
                     }
                 }
                 break;

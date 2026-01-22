@@ -349,6 +349,7 @@ namespace txuribeltz_server
                 cmd.Parameters.AddWithValue("@player1", player1);
                 cmd.Parameters.AddWithValue("@player2", player2);
                 cmd.Parameters.AddWithValue("@winner", winner);
+                cmd.Parameters.AddWithValue("@loser", loser);
                 cmd.ExecuteNonQuery();
                 Console.WriteLine($"Partida ondo gorde da: {player1} vs {player2}, irabazlea: {winner}");
             }

@@ -30,9 +30,9 @@ public class Partida
         Amaituta = false;
         TxatMezuak = new List<string>();
         Taula = new string[15, 15]; //15x15 taula hasieratzea
-        TxandakoJokalaria = Jokalari1.Erabiltzailea; //Jokalari1-ek hasiko du
+        TxandakoJokalaria = Jokalari1.Erabiltzailea; //Jokalari1-ek hasiko du bera izan delako partida bilatu duen lehenendoa
 
-        Console.WriteLine($"DEBUG: Partida objetua sortu da errorerik gabe: {PartidaID} ({jokalari1.Erabiltzailea} vs {jokalari2.Erabiltzailea})");
+        //Console.WriteLine($"DEBUG: Partida objetua sortu da errorerik gabe: {PartidaID} ({jokalari1.Erabiltzailea} vs {jokalari2.Erabiltzailea})");
     }
 
     // partidaren barruan dauden bi erabiltzaileei mezua bidaltzeko metodoa
@@ -43,7 +43,7 @@ public class Partida
         {
             Jokalari1.Writer.WriteLine(mezua);
             Jokalari2.Writer.WriteLine(mezua);
-            Console.WriteLine($"DEBUG: [{PartidaID}] Bidalita bieiei: {mezua}");
+            //Console.WriteLine($"DEBUG: [{PartidaID}] Bidalita bieiei: {mezua}");
         }
         catch (Exception ex)
         {
@@ -66,7 +66,7 @@ public class Partida
             {
                 Jokalari2.Writer.WriteLine(mezua);
             }
-            Console.WriteLine($"DEBUG: [{PartidaID}] Bidalita {erabiltzailea}: {mezua}");
+            //Console.WriteLine($"DEBUG: [{PartidaID}] Bidalita {erabiltzailea}: {mezua}");
         }
         catch (Exception ex)
         {
@@ -113,7 +113,7 @@ public class Partida
         }
         else
         {
-            pieza = "W"; // Jokalari2 = Zuriak (White)
+            pieza = "W"; // Jokalari2 = Txuriak (White)
         }
         Taula[row, col] = pieza;
 
@@ -121,7 +121,7 @@ public class Partida
 
         // Bidali biei
         BidaliBieiei($"MOVE:{jokalaria}:{row},{col}:{pieza}");
-        Console.WriteLine($"DEBUG: [{PartidaID}] Mugimendua: {mugimendua}");
+        //Console.WriteLine($"DEBUG: [{PartidaID}] Mugimendua: {mugimendua}");
 
         // Aldatu txanda
         TxandakoJokalaria = LortuAurkalaria(jokalaria);
@@ -158,8 +158,9 @@ public class Partida
         Galtzailea = LortuAurkalaria(irabazlea);
         Console.WriteLine($"[{PartidaID}] Partida amaitu - Irabazlea: {irabazlea ?? "Berdinketa"}");
 
-        // Bidali emaitza bieiei
-        BidaliJokalariari(irabazlea, "MATCH_END");
+        // Bidali emaitza BIEIEI
+        BidaliJokalariari(Irabazlea, "MATCH_END:WIN:Irabazi duzu!");
+        BidaliJokalariari(Galtzailea, "MATCH_END:LOSE:Galdu duzu!");
 
         // emaitza datubasean gorde
         databaseOperations.partidaGorde(Jokalari1.Erabiltzailea, Jokalari2.Erabiltzailea, Irabazlea, Galtzailea);
