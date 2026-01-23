@@ -8,6 +8,10 @@ using System.Threading.Tasks;
 
 namespace txuribeltz_server
 {
+    // POSTGRES datu basearekin komunikatzeko beharrezko funtzioak dauzkan klasea
+    // Kontuan izango dugu, taulak eta datuak modu dinamikoan sortuta daudela aplikazioa lehenengo aldiz exekutatzen denean, beraz,
+    // aurrerago administratzaileak erabaki dezake ea datu horiek gordeko dituen edo ez.
+    // Bestela initdb.sql fitxategian dauden taulak eta datuak aldatu daitezke aplikazioa azkenik publikatzen denean
     static class databaseOperations
     {
         private static NpgsqlDataSource dataSource;
@@ -16,6 +20,8 @@ namespace txuribeltz_server
          * Komando hau erabiliz: NuGet\Install-Package Npgsql -Version 10.0.1
          * Web orria: https://www.nuget.org/packages/Npgsql/
          */
+        // Datu baserea konexioa egiten da, horretarako jakin behar ditugu erabiltzaile izena, pasahitza eta datu basearen izena
+        // Datu horiek compose.yaml fitxategian daude definituta, baina beharraren arabera aldatu daitezke berez
         public static async Task ConnectDatabaseAsync()
         {
             string user = "admin";
@@ -35,6 +41,7 @@ namespace txuribeltz_server
         }
 
         // erabiltzaileak existitzen badira egiaztatzeko eta admin diren ala ez
+        // true bueltatuko du erabiltzailea existitzen bada eta pasahitza zuzen badago
         public static async Task<bool> checkErabiltzaileak(string erabiltzaile, string pasahitza)
         {
             if (dataSource == null)
@@ -162,9 +169,9 @@ namespace txuribeltz_server
             }
         }
 
-        //datu baseko erabiltzaile normalak kargatzen ditu lista batean
+        //datu baseko erabiltzaile normalak kargatzen ditu lista batean, administratzaileak erabiltzaileak kudeatzeko erabiliko du
         //Kargatzen ditu izena, mota eta pasahitza
-        //Aldi berean, erabiltzaile bakoitza inprimatzen du badaezpada ere
+        //Aldi berean, erabiltzaile bakoitza inprimatzeko aukera daukagu badaezpada ere (debugeatzeko)
         public static List<Erabiltzaile> kargatuErabiltzaileak()
         {
             List<Erabiltzaile> erabiltzaileak = new List<Erabiltzaile>();
@@ -187,7 +194,7 @@ namespace txuribeltz_server
                         Pasahitza = reader.GetString(2)
                     };
                     erabiltzaileak.Add(erabiltzailea);
-                    Console.WriteLine(erabiltzailea.ToString());
+                    //Console.WriteLine(erabiltzailea.ToString());
                 }
             }
             catch (Exception ex)
@@ -198,6 +205,12 @@ namespace txuribeltz_server
         }
 
         //erabiltzailea menuan sartzen denean lortuko duen informazio guztia bidaliko da string luze batean ":" banatuta
+        // Datu horiek izango dira:
+        // - Erabiltzaile izena
+        // - ELO
+        // - Irabaziak
+        // - Galduak
+        // - Winrate (portzentaian)
         public static string? lortuBezeroInformazioaMenurako(string erabiltzailea)
         {
             if (dataSource == null)
@@ -251,13 +264,15 @@ namespace txuribeltz_server
                 int winrateBorobildu = (int)Math.Round(winrate*100, MidpointRounding.AwayFromZero);
 
                 string erantzuna = $"DATA:{username}:{elo}:{irabaziak}:{galduak}:{winrateBorobildu}%";
-                Console.WriteLine($"""
+                // Debugeatzeko informazioa inprimatu
+                /*Console.WriteLine($"""
                                     {erabiltzailea.ToUpper()} erabiltzailearen informazioa: 
                                         ELO:{elo}
                                         IRABAZIAK:{irabaziak}
                                         GALDUAK:{galduak}
                                         WINRATE:{winrateBorobildu}%
                                     """);
+                */
 
                 return erantzuna;
             }
@@ -268,7 +283,7 @@ namespace txuribeltz_server
             }
         }
 
-        //erabiltzaile baten eloa lortzeko
+        //erabiltzaile espezifiko baten eloa lortzeko string batean
         public static string eloLortu(string erabiltzailea)
         {
             string elo = "0";
@@ -296,6 +311,10 @@ namespace txuribeltz_server
             return elo;
         }
 
+        // datu baseko jokalarien artetik TOP 10 lortzeko erabiliko da.
+        // Printzipioz erabiltzaile bakoitza logeatzen den bakoitzean deituko da eta menuan erakutsiko zaizkio erabiltzaile hauen izena eta elo-a
+        // Horrelako formatuarekin bidaliko da datua:
+        // ["izena|elo"], ["izena2|elo2"], ...
         public static List<string> lortuTOP10()
         {
             List<string> top10 = new List<string>();
@@ -312,8 +331,8 @@ namespace txuribeltz_server
                 using var reader = cmd.ExecuteReader();
                 while (reader.Read())
                 {
-                    string linea = $"{reader.GetString(0)}|{reader.GetInt32(1)}";
-                    top10.Add(linea);
+                    string jokalaria = $"{reader.GetString(0)}|{reader.GetInt32(1)}";
+                    top10.Add(jokalaria);
                 }
             }
             catch (Exception ex)
@@ -324,6 +343,8 @@ namespace txuribeltz_server
         }
 
         //Partida bat gordetzeko eta jokalarien elo-ak eguneratzeko
+        // Partida bat bukatzen denean erabiliko da funtzoi hau, bertan, partida fila bat sortuko da partidak taulan
+        // Bi jokalariak, irabazlea eta galtzailea pasako ditugu etaq sql kontsulta bat exekutatuko da non eloak eguneratuko diren
         public static void partidaGorde(string player1, string player2, string winner, string loser)
         {
             if (dataSource == null)

@@ -32,6 +32,8 @@ namespace txuribeltz
             zerbitzariraKonektatu(); 
         }
 
+        // zerbitzarira konektatzeko metodoa, errefaktorizatu beharko litzateke, beste klaseetan daukadan bezala
+        // Adibidez hasiMezuakEntzuten() eta prozesatuMezuak() bezalako metodoak erabiliz
         public void zerbitzariraKonektatu()
         {
             try
@@ -57,8 +59,10 @@ namespace txuribeltz
                         {
                             Dispatcher.Invoke(() =>
                             {
-                                
-                                // Zerbitzariaren aginduak kudeatu
+
+                                // Zerbitzariaren aginduak kudeatu, zerbitzaritik datorren mezua AGINDUA:mezua formatua dakar
+
+                                // Bakarrik loginarekin zerikusia daukaten aginduak kudeatuko dira hemen
                                 if (line.StartsWith("LOGIN_OK"))
                                 {
                                     logeatuta = true;
@@ -123,7 +127,7 @@ namespace txuribeltz
         //lehioa ixtean zerbitzaritik deskonektatuko da bezeroa baina bakarrik logeatu gabe dagoenean
         private void zerbitzaritikDeskonektatu()
         {
-            //Galdera ikurrak null ez den egiaztatzen du
+            //Errekurtsoak itxiko dira baina zerbitzariari deskonexioa egiteko esan, garbiagoa izateko
             try
             {
                 if (!logeatuta)
@@ -218,6 +222,7 @@ namespace txuribeltz
             zerbitzaritikDeskonektatu();
         }
 
+        // zerbitzarira konektatu botoia sakatuz, adibidez zerbitzarira aplikazioa irekitzerakoan ez badugu konexiorik lortzen, berriz probatu dezakegu botoiari sakatuz
         private void zerbitzariraKonektatu(object sender, RoutedEventArgs e)
         {
             if (!konexioaEginda)

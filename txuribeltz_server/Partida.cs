@@ -83,7 +83,7 @@ public class Partida
 
         // Bidali biei
         BidaliBieiei($"CHAT:{bidaltzailea}:{mezua}");
-        Console.WriteLine($"DEBUG: [{PartidaID}] Chat: {chatMezua}");
+        //Console.WriteLine($"DEBUG: [{PartidaID}] Chat: {chatMezua}");
     }
 
     // partidaren barruan jokalariarekiko mugimendua prozesatzen duen metodoa
@@ -93,7 +93,7 @@ public class Partida
         if (TxandakoJokalaria != jokalaria)
         {
             BidaliJokalariari(jokalaria, "ERROR:Ez da zure txanda");
-            Console.WriteLine($"DEBUG: [{PartidaID}] {jokalaria} txandaz kanpo jokatu nahi izan du");
+            //Console.WriteLine($"DEBUG: [{PartidaID}] {jokalaria} txandaz kanpo jokatu nahi izan du");
             return false;
         }
 
@@ -101,7 +101,7 @@ public class Partida
         if (!string.IsNullOrEmpty(Taula[row, col]))
         {
             BidaliJokalariari(jokalaria, "ERROR:Laukia okupatuta dago");
-            Console.WriteLine($"DEBUG: [{PartidaID}] {jokalaria} laukia okupatuta: [{row},{col}]");
+            //Console.WriteLine($"DEBUG: [{PartidaID}] {jokalaria} laukia okupatuta: [{row},{col}]");
             return false;
         }
 
@@ -138,10 +138,11 @@ public class Partida
 
     private bool EgiaztatuIrabazlea(int row, int col, string pieza)
     {
-        // 5 jarraian logika (horizontal, vertical, diagonal)
+        // 5 jarraian logika inplementatu behar dut oraindik
         return false;
     }
 
+    // Partida jolasten ari den erabiltzailearen aurkaria lortzeko metodoa
     public string? LortuAurkalaria(string erabiltzailea)
     {
         if (Jokalari1.Erabiltzailea == erabiltzailea)
@@ -151,6 +152,7 @@ public class Partida
         return null;
     }
 
+    // Partida amaitzeko metodoa, irabazlea eta galtzailea jasotzen ditu eta bakoitzari bidaltzen dio dagokion mezua, bertatik kudeatzeko
     public void AmaituPartida(string? irabazlea)
     {
         Amaituta = true;

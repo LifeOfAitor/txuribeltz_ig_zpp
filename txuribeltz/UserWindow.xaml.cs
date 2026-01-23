@@ -26,11 +26,16 @@ namespace txuribeltz
             this.writer = writer;
             this.erabiltzailea = erabiltzailea;
             InitializeComponent();
+            // zerbitzaritik datozen mezuak entzuten egon denbora guztian
             hasiMezuakEntzuten();
+            // Logeatu garen erabiltzailearen datuak kargatuko ditugu eta pantaian erakutsiko ditugu
             kargatuErabiltzailea();
+            // Menuan, eskubiko atalean dagoen top 10 jokalarien zerrenda kargatuko dugu
             kargatuTOP10();
         }
 
+        // Zerbitzaritik mezuak entzuten egongo da denbora guztian
+        // Jasotzen dituen mezuak prozesatuko ditu agindu ezberdinak kudeatzeko
         private void hasiMezuakEntzuten()
         {
             Thread t = new Thread(() =>
@@ -59,6 +64,7 @@ namespace txuribeltz
             t.Start();
         }
 
+        // Gure erabiltzailearen informazioa zerbitzariari eskatuko diogu
         private void kargatuErabiltzailea()
         {
             try
@@ -71,11 +77,13 @@ namespace txuribeltz
                 MessageBox.Show($"Errorea erabiltzailearen informazioa eskatzean: {ex.Message}");
             }
         }
+
+        // Zerbitzariari to 10 jokalarien informazioa eskatuko diogu, beranduago menuan erakutsi ahal izateko, bakarrik izena eta elo-a inporta zaizkigu
         private void kargatuTOP10()
         {
             try
             {
-                // eskatu gure erabiltzailearen informazioa
+                // zerbitzariari bidali informazioa nahi dugula
                 writer.WriteLine($"TOP_10:");
             }
             catch (Exception ex)
@@ -84,6 +92,8 @@ namespace txuribeltz
             }
         }
 
+        // Zerbitzaritik datorren mezua prozesatuko duen metodoa.
+        // Agindua bananduko da eta mezua ere, aginduaren arabera ekintza ezberdinak kudeatuko dira.
         private void prozesatuMezua(string mezua)
         {
             // Mezuak formatu hau izango du: AGINDUA:informazioa:informazioa...
@@ -170,9 +180,15 @@ namespace txuribeltz
             this.Close();
         }
 
+        // Pasahitza aldatzeko formularioa erakutsi
         private void EditProfile_Click(object sender, RoutedEventArgs e)
         {
             editFormPanel.Visibility = Visibility.Visible;
+        }
+        // Pasahitza aldatzeko formularioa ezkutatu
+        private void CancelEdit_Click(object sender, RoutedEventArgs e)
+        {
+            editFormPanel.Visibility = Visibility.Collapsed;
         }
 
         private void SaveChanges_Click(object sender, RoutedEventArgs e)
@@ -182,19 +198,15 @@ namespace txuribeltz
             editFormPanel.Visibility = Visibility.Collapsed;
         }
 
-        private void CancelEdit_Click(object sender, RoutedEventArgs e)
-        {
-            editFormPanel.Visibility = Visibility.Collapsed;
-        }
-
+        // Partida bilatunahi dugula bidali zerbitzariari, horrela, zerbitzariak kolan sartuko gaitu aurkalariren bat aurkitzeko
         private void QueueMatch_Click(object sender, RoutedEventArgs e)
         {
             kolanDago = true;
             lblPartidaBilatzen.Visibility = Visibility.Visible;
-            // Bidaltzen da elo-a zerbitzariari (zerbitzariak daturik esleituko du)
             writer.WriteLine($"FIND_MATCH:");
         }
 
+        // Partida hasteko prest gaudela adierazi zerbitzariari, hala ere, partida hasiko da bi aurkalarietako batek ematen dionean
         private void StartMatch_Click(object sender, RoutedEventArgs e)
         {
             if (currentOpponent != null)

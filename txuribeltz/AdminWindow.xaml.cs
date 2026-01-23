@@ -23,21 +23,23 @@ namespace txuribeltz
     {
         private StreamWriter writer;
         private StreamReader reader;
-        List<Erabiltzaile> erabiltzaileak = new List<Erabiltzaile>();
+        List<Erabiltzaile> erabiltzaileak = new List<Erabiltzaile>(); // Erabiltzaile objetua erabiliko da, bakarrik administratzailearentzako sortu dena
 
         public AdminWindow(StreamReader reader, StreamWriter writer)
         {
             this.reader = reader;
             this.writer = writer;
             InitializeComponent();
-            
-            // Start listening for server messages in this window
+
+            // Zerbitzariaren mezuak entzuten egon
             HasiMezuakEntzuten();
             
-            // Request user list from server
+            // Eskatu zerbitzariari erabiltzaileen informazioa, erakutsi eta editatu ahal izateko
             erakutsiErabiltzaileak();
         }
 
+        // Zerbitzaritik mezuak entzuten egongo da denbora guztian
+        // Jasotzen dituen mezuak prozesatuko ditu agindu ezberdinak kudeatzeko
         private void HasiMezuakEntzuten()
         {
             Thread t = new Thread(() =>
@@ -66,6 +68,8 @@ namespace txuribeltz
             t.Start();
         }
 
+        // Zerbitzaritik datorren mezua prozesatuko duen metodoa.
+        // Agindua bananduko da eta mezua ere, aginduaren arabera ekintza ezberdinak kudeatuko dira.
         private void prozesatuMezua(string mezua)
         {
             // Egiaztatu mezua USERS_LIST motakoa den
@@ -128,7 +132,6 @@ namespace txuribeltz
                     MessageBox.Show("Ez dago erabiltzailerik.");
                 }
             }
-            // Etorkizunean beste mezu mota gehiago gehitu daitezke hemen (else if...)
         }
 
         // erabiltzaileak zerrendan kargatu
@@ -150,7 +153,6 @@ namespace txuribeltz
         {
             try
             {
-                // Request users list from server
                 writer.WriteLine("GET_USERS");
             }
             catch (Exception ex)
@@ -159,6 +161,7 @@ namespace txuribeltz
             }
         }
 
+        // Zerbitzaritik deskonexioa eskatzen da eta lehioa ixten da
         private void LogoutButton_Click(object sender, RoutedEventArgs e)
         {
             writer.WriteLine("DISCONNECT");
@@ -232,7 +235,7 @@ namespace txuribeltz
                     // Bidali ezabatzeko mezua zerbitzariari
                     writer.WriteLine($"DELETE:{izena}");
                     
-                    // Itxaron pixka bat eta freskatu erabiltzaileen zerrenda
+                    // Itxaron pixka bat eta eguneratu erabiltzaileen zerrenda
                     Thread.Sleep(500);
                     erakutsiErabiltzaileak();
                     

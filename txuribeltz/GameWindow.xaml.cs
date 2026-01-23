@@ -17,8 +17,8 @@ namespace txuribeltz
         private StreamReader reader;
         private string erabiltzailea;
         private string aurkalaria;
-        private Button[,] taulakoBotoiak;
-        private bool shouldListen = true;
+        private Button[,] taulakoBotoiak; // Jokuaren taula botoi array bat izango da
+        private bool shouldListen = true; //zerbitzaritik mezuak jasotzen jarraitu behar den kontrolatzeko
 
         public GameWindow(StreamReader reader, StreamWriter writer, string erabiltzailea, string erabiltzaileaElo, string aurkalaria, string aurkalariaElo)
         {
@@ -39,6 +39,7 @@ namespace txuribeltz
             hasiMezuakEntzuten();
         }
 
+        //Lehio guztiak bezala zerbitzaritik datozen mezuak entzun eta prozesatzen ditu
         private void hasiMezuakEntzuten()
         {
             Thread t = new Thread(() =>
@@ -169,9 +170,10 @@ namespace txuribeltz
                 StrokeThickness = 1
             };
             cell.Content = stone;
-            cell.IsEnabled = false; // Prevent clicking occupied cells
+            cell.IsEnabled = false; // Ezin da berriro klikatu pieza jarri ondoren posizio horretan
         }
 
+        // Taulako posizio batean klik egitean deituko den metodoa, zerbitzariari bidaltzen dio posizioa bertatik kudeatzeko
         private void Cell_Click(object sender, RoutedEventArgs e)
         {
             Button cell = (Button)sender;
@@ -265,6 +267,8 @@ namespace txuribeltz
             }
         }
 
+        // Erabiltzaileak partida utzi nahi duenean kudeatzen da
+        // Aurrerago agian penalizazioa jarriko da, -100 elo ordez, -150 edo horrelako zerbait
         private void Leave_Click(object sender, RoutedEventArgs e)
         {
             var result = MessageBox.Show("Ziur zaude partida utzi nahi duzula? Galdu egingo duzu.",
