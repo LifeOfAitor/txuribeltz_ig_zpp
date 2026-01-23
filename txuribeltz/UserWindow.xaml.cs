@@ -203,6 +203,7 @@ namespace txuribeltz
         {
             kolanDago = true;
             lblPartidaBilatzen.Visibility = Visibility.Visible;
+            partidaInformazioa.Visibility = Visibility.Collapsed;
             writer.WriteLine($"FIND_MATCH:");
         }
 

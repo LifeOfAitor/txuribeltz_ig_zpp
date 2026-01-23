@@ -204,13 +204,13 @@ public class Server
                     }
                     else
                     {
-                        Console.WriteLine($"DEBUG: {logeatutakoBezeroa.Erabiltzailea} itxaroten, aurkalaririk ez");
+                        //Console.WriteLine($"DEBUG: {logeatutakoBezeroa.Erabiltzailea} itxaroten, aurkalaririk ez");
                     }
                 }
                 break;
 
             case "START_MATCH":
-                Console.WriteLine($"DEBUG: START_MATCH jaso - mezuarenzatiak.Length: {mezuarenzatiak.Length}");
+                //Console.WriteLine($"DEBUG: START_MATCH jaso - mezuarenzatiak.Length: {mezuarenzatiak.Length}");
                 if (logeatutakoBezeroa != null && mezuarenzatiak.Length >= 2)
                 {
                     string oponentea = mezuarenzatiak[1];
@@ -228,7 +228,7 @@ public class Server
                             // Egiaztatu partida ez dagoela jadanik
                             if (partidaAktiboak.ContainsKey(partidaID))
                             {
-                                Console.WriteLine($"DEBUG: Partida {partidaID} dagoeneko existitzen da");
+                                //Console.WriteLine($"DEBUG: Partida {partidaID} dagoeneko existitzen da");
                                 writer.WriteLine("ERROR:Partida dagoeneko hasita dago");
                                 break;
                             }
@@ -241,16 +241,16 @@ public class Server
                             logeatutakoBezeroa.PartidaID = partidaID;
                             aurkalaria.PartidaID = partidaID;
 
-                            Console.WriteLine($"DEBUG: Partida objetua sortuta - {partidaID}");
+                            Console.WriteLine($"PARTIDA SORTU DA -> Partida id:{partidaID} -> {logeatutakoBezeroa} eta {aurkalaria}");
                         }
 
                         // Bidali biei partida hasi dela
                         partidaAktiboak[partidaID].BidaliBieiei($"MATCH_STARTED:{partidaID}");
-                        Console.WriteLine($"DEBUG: MATCH_STARTED bidalita bieei - {partidaID}");
+                        //Console.WriteLine($"DEBUG: MATCH_STARTED bidalita bieei - {partidaID}");
                     }
                     else
                     {
-                        Console.WriteLine($"DEBUG: ERROREA - Aurkalaria {oponentea} ez da aurkitu zerbitzarian");
+                        //Console.WriteLine($"DEBUG: ERROREA - Aurkalaria {oponentea} ez da aurkitu zerbitzarian");
                         writer.WriteLine("ERROR:Aurkalaria ez da aurkitu");
                     }
                 }
@@ -274,7 +274,7 @@ public class Server
                     }
                     else
                     {
-                        Console.WriteLine($"DEBUG: {logeatutakoBezeroa.Erabiltzailea} ez dago partidarik");
+                        //Console.WriteLine($"DEBUG: {logeatutakoBezeroa.Erabiltzailea} ez dago partidarik");
                         writer.WriteLine("ERROR:Ez zaude partidarik jolasten");
                     }
                 }
@@ -298,7 +298,7 @@ public class Server
                         }
                         else
                         {
-                            Console.WriteLine($"DEBUG: {logeatutakoBezeroa.Erabiltzailea} ez dago partidarik");
+                            //Console.WriteLine($"DEBUG: {logeatutakoBezeroa.Erabiltzailea} ez dago partidarik");
                             writer.WriteLine("ERROR:Ez zaude partidarik jolasten");
                         }
                     }
@@ -320,7 +320,7 @@ public class Server
                         // bidali irabazleari mezua eta kendu partida
                         
                         KenduPartida(partida.PartidaID);
-                        Console.WriteLine($"DEBUG: partida bukatuta eta ezabatuta");
+                        //Console.WriteLine($"DEBUG: partida bukatuta eta ezabatuta");
                     }
                 }
                 break;
@@ -335,7 +335,7 @@ public class Server
                         string? irabazlea = partida.LortuAurkalaria(logeatutakoBezeroa.Erabiltzailea);
                         partida.AmaituPartida(irabazlea);
                         KenduPartida(partida.PartidaID);
-                        Console.WriteLine($"DEBUG: {logeatutakoBezeroa.Erabiltzailea} partida utzi du");
+                        //Console.WriteLine($"DEBUG: {logeatutakoBezeroa.Erabiltzailea} partida utzi du");
                     }
                 }
                 break;
@@ -475,7 +475,7 @@ public class Server
         lock (lockObject)
         {
             kolanDaudenErabiltzaileak.Remove(bezeroa);
-            Console.WriteLine($"DEBUG: {bezeroa.Erabiltzailea} kolatik kenduta. Kolako kopurua: {kolanDaudenErabiltzaileak.Count}");
+            //Console.WriteLine($"DEBUG: {bezeroa.Erabiltzailea} kolatik kenduta. Kolako kopurua: {kolanDaudenErabiltzaileak.Count}");
         }
     }
 
