@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Diagnostics;
+using System.IO;
 using System.Net.Sockets;
 using System.Text;
 using System.Windows;
@@ -38,9 +39,8 @@ namespace txuribeltz
         {
             try
             {
-               
                 client = new TcpClient();
-                client.Connect("127.0.0.1", 13000); // Zerbitzariaren IP eta portua
+                client.Connect(txtServerIp.Text, 13000); // Zerbitzariaren IP eta portua, defektuz localhost eta 13000 dira
                 ns = client.GetStream();
                 writer = new StreamWriter(ns, Encoding.UTF8) { AutoFlush = true };
                 reader = new StreamReader(ns, Encoding.UTF8);
@@ -119,7 +119,7 @@ namespace txuribeltz
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Ezin izan da konektatu zerbitzarira: {ex.Message}");
+                //MessageBox.Show($"Ezin izan da konektatu zerbitzarira: {ex.Message}");
                 txt_erroreak.Text = "Ezin izan da konektatu zerbitzarira. Konexioa bilatzen...";
             }
         }

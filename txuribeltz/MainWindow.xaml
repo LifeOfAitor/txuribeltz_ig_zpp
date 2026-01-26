@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:txuribeltz"
         mc:Ignorable="d"
-        Height="550" Width="600"
+        Height="auto" Width="600"
         WindowStartupLocation="CenterScreen"
         ResizeMode="NoResize"
         Background="#FF2C2C2C"
@@ -13,7 +13,7 @@
         PreviewKeyDown="Window_PreviewKeyDown"
         Closing="itxiAplikazioa">
 
-    <Grid Margin="40">
+    <Grid Margin="10">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
@@ -30,6 +30,9 @@
 
         <!-- Formulario de login -->
         <StackPanel Grid.Row="1" VerticalAlignment="Center" Width="300" HorizontalAlignment="Center">
+            <TextBlock Text="ZERBITZARIA:" Foreground="White" FontSize="14"/>
+            <TextBox x:Name="txtServerIp" Margin="0,5,0,15" Height="30" FontSize="14" Text="localhost"/>
+            
             <TextBlock Text="ERABILTZAILEA:" Foreground="White" FontSize="14"/>
             <TextBox x:Name="txtUsuario" Margin="0,5,0,15" Height="30" FontSize="14"/>
 
@@ -54,10 +57,10 @@
 
         <!-- Erroreak agertuko dira hemen, baldin badaude -->
         <TextBlock x:Name="txt_erroreak" Grid.Row="2" Text="" 
-                   HorizontalAlignment="Center" 
-                   FontSize="12" Foreground="PaleVioletRed" Margin="0,5,0,0"/>
+                       HorizontalAlignment="Center" 
+                       FontSize="12" Foreground="PaleVioletRed" Margin="0,5,0,0"/>
         <TextBlock x:Name="txt_mezuak" Grid.Row="2" Text="" 
-                   HorizontalAlignment="Center" 
-                   FontSize="12" Foreground="ForestGreen" Margin="0,5,0,0"/>
+                       HorizontalAlignment="Center" 
+                       FontSize="12" Foreground="ForestGreen" Margin="0,5,0,0"/>
     </Grid>
 </Window>
