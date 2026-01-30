@@ -148,17 +148,45 @@ public class Server
                 break;
 
             case "USERDATA":
-                string? emaitza = databaseOperations.lortuBezeroInformazioaMenurako(logeatutakoBezeroa.Erabiltzailea);
-
-                if (!string.IsNullOrEmpty(emaitza))
+                // banandu behar da, datuak erabiltzaileak eskatzen dituenean edo adminak beste erabiltzaile baten datuak eskatzen dituenean
+                if (logeatutakoBezeroa.Mota == "admin" && mezuarenzatiak.Length == 2)
                 {
-                    writer.WriteLine(emaitza); //DATA:erabiltzailea:elo:partidakJokatu:partidakIrabazi:winrate
+                    // adminak beste erabiltzaile baten datuak eskatzen ditu
+                    string erabiltzailea = mezuarenzatiak[1];
+                    string? emaitza = databaseOperations.lortuBezeroInformazioaMenurako(erabiltzailea);
+                    if (!string.IsNullOrEmpty(emaitza))
+                    {
+                        writer.WriteLine(emaitza); //DATA:erabiltzailea:elo:partidakJokatu:partidakIrabazi:winrate
+                    }
+                    else
+                    {
+                        Console.WriteLine($"ERROR:{erabiltzailea} datuak ez dira aurkitu");
+                    }
+                    break;
                 }
                 else
                 {
-                    Console.WriteLine($"ERROR:{logeatutakoBezeroa.Erabiltzailea} datuak ez dira aurkitu");
-                }                    
+                    // erabiltzaileak bere datuak eskatzen ditu
+                    string? emaitza = databaseOperations.lortuBezeroInformazioaMenurako(logeatutakoBezeroa.Erabiltzailea);
+
+                    if (!string.IsNullOrEmpty(emaitza))
+                    {
+                        writer.WriteLine(emaitza); //DATA:erabiltzailea:elo:partidakJokatu:partidakIrabazi:winrate
+                    }
+                    else
+                    {
+                        Console.WriteLine($"ERROR:{logeatutakoBezeroa.Erabiltzailea} datuak ez dira aurkitu");
+                    }
+                    break;
+                }
+
+            case "GET_DATA_STATS":
+                DateTime hasieradata = DateTime.Parse(mezuarenzatiak[1]);
+                DateTime bukaeradata = DateTime.Parse(mezuarenzatiak[2]);
+                string? statsEmaitza = databaseOperations.partidaKopuruaLortu(hasieradata, bukaeradata);
+                writer.WriteLine($"COUNT_PARTIDAK:{statsEmaitza}");
                 break;
+
 
             case "TOP_10":
                 List<string> erabiltzaileak = databaseOperations.lortuTOP10();

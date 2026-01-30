@@ -188,7 +188,8 @@ namespace txuribeltz_server
                 using var reader = cmd.ExecuteReader();
                 while (reader.Read())
                 {
-                    Erabiltzaile erabiltzailea = new Erabiltzaile {
+                    Erabiltzaile erabiltzailea = new Erabiltzaile
+                    {
                         Erabiltzailea = reader.GetString(0),
                         Mota = reader.GetString(1),
                         Pasahitza = reader.GetString(2)
@@ -261,7 +262,7 @@ namespace txuribeltz_server
                 int galduak = reader.GetInt32(3);
                 double winrate = reader.IsDBNull(4) ? 0.0 : reader.GetDouble(4);
 
-                int winrateBorobildu = (int)Math.Round(winrate*100, MidpointRounding.AwayFromZero);
+                int winrateBorobildu = (int)Math.Round(winrate * 100, MidpointRounding.AwayFromZero);
 
                 string erantzuna = $"DATA:{username}:{elo}:{irabaziak}:{galduak}:{winrateBorobildu}%";
                 // Debugeatzeko informazioa inprimatu
@@ -378,6 +379,32 @@ namespace txuribeltz_server
             {
                 Console.WriteLine($"Errorea partida gordetzerakoan: {ex.Message}");
             }
+        }
+
+        // Zerbitzariak eskatzen duen data ezberdinen arteko partida kopurua lortzeko
+        // Admin erabiltzaileak erabiliko du datu hau estatistikak ikusteko
+        public static string partidaKopuruaLortu(DateTime hasieraData, DateTime amaieraData)
+        {
+            int partidaKopurua = 0;
+            if (dataSource == null)
+            {
+                Console.WriteLine("Ez dago konexiorik sortuta");
+                return partidaKopurua + "";
+            }
+            const string query = "SELECT COUNT(*) FROM partidak WHERE played_at BETWEEN @hasieraData AND @amaieraData;";
+            try
+            {
+                using var conn = dataSource.OpenConnection(); // datu basera konektatzen da
+                using var cmd = new NpgsqlCommand(query, conn);
+                cmd.Parameters.AddWithValue("@hasieraData", hasieraData);
+                cmd.Parameters.AddWithValue("@amaieraData", amaieraData);
+                partidaKopurua = Convert.ToInt32(cmd.ExecuteScalar());
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Errorea partida kopurua lortzerakoan: {ex.Message}");
+            }
+            return partidaKopurua + "";
         }
     }
 }

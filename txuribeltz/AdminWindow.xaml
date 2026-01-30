@@ -3,12 +3,13 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:txuribeltz"
+        xmlns:local="clr-namespace:txuribeltz" 
+        xmlns:sys="clr-namespace:System;assembly=netstandard"
         mc:Ignorable="d"
         Title="Administrazio Panela" Height="600" Width="900"
         WindowStartupLocation="CenterScreen"
         Background="#F5F5F5">
-    
+
     <Grid Margin="20">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -22,7 +23,7 @@
                    FontWeight="Bold" 
                    Foreground="#333"
                    Margin="0,0,0,20"/>
-        
+
         <Button Grid.Row="0"
                 x:Name="btnLogout"
                 Content="Saioa Itxi" 
@@ -41,6 +42,10 @@
             <!-- Tab: Erabiltzaileak Kudeatu -->
             <TabItem Header="Erabiltzaileak" FontSize="14">
                 <Grid Margin="20">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="97*"/>
+                        <ColumnDefinition Width="718*"/>
+                    </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
@@ -56,7 +61,7 @@
                              AlternatingRowBackground="#F9F9F9"
                              GridLinesVisibility="Horizontal"
                              HeadersVisibility="Column"
-                             CanUserAddRows="False">
+                             CanUserAddRows="False" Grid.ColumnSpan="2">
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="Erabiltzailea" Binding="{Binding Erabiltzailea}" Width="*"/>
                             <DataGridTextColumn Header="Mota" Binding="{Binding Mota}" Width="Auto"/>
@@ -68,8 +73,8 @@
                     <StackPanel Grid.Row="2" 
                                Orientation="Horizontal" 
                                HorizontalAlignment="Right"
-                               Margin="0,15,0,0">
-                        
+                               Margin="0,15,0,0" Grid.Column="1">
+
                         <Button x:Name="btnEguneratu"
                                 Content="Eguneratu ⟳" 
                                 Width="100" 
@@ -104,14 +109,111 @@
                     </StackPanel>
                 </Grid>
             </TabItem>
-            <TabItem Header="Estadistikak" FontSize="14">
-                <Grid Margin="20">
-                    <TextBlock Text="Estadistikak atala" 
-                               FontSize="16" 
-                               HorizontalAlignment="Center" 
-                               VerticalAlignment="Center"/>
-                </Grid>
-                </TabItem>
+            <TabItem Header="Estadistikak" FontSize="14" Height="23" VerticalAlignment="Bottom">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <Grid Margin="20">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="20"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="20"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Border Grid.Column="0" Background="White" CornerRadius="8" Padding="15" BorderBrush="#E0E0E0" BorderThickness="1">
+                            <Border.Effect>
+                                <DropShadowEffect BlurRadius="10" ShadowDepth="2" Direction="270" Color="#EEE" Opacity="0.5"/>
+                            </Border.Effect>
+                            <StackPanel>
+                                <TextBlock Text="Datak" FontSize="18" FontWeight="Bold" Foreground="#333" Margin="0,0,0,10"/>
+                                <Separator Margin="0,0,0,15"/>
+
+                                <TextBlock Text="Hasierako data:" Foreground="#666" Margin="0,0,0,5"/>
+                                <DatePicker x:Name="datePickerHasi" SelectedDate="{Binding LastWeek, Mode=OneWay}" Height="35" Margin="0,0,0,15" VerticalContentAlignment="Center"/>
+
+                                <TextBlock Text="Bukaerako data:" Foreground="#666" Margin="0,0,0,5"/>
+                                <DatePicker x:Name="datePickerBukatu" SelectedDate="{Binding Today, Mode=OneWay}"  Height="35" Margin="0,0,0,20" VerticalContentAlignment="Center"/>
+
+                                <Button x:Name="dataStatistikak_btn" 
+                                        Content="Sortu PDF Txostena" 
+                                        Height="40" 
+                                        Background="#FF00A86B" 
+                                        Foreground="White" 
+                                        FontWeight="Bold"
+                                        Cursor="Hand"
+                                        BorderThickness="0" Click="dataStatistikak_btn_Click">
+                                    <Button.Resources>
+                                        <Style TargetType="Border">
+                                            <Setter Property="CornerRadius" Value="4"/>
+                                        </Style>
+                                    </Button.Resources>
+                                </Button>
+                                <TextBlock Text="Partiden kopurua data-tarte zehatz baterako." TextWrapping="Wrap" FontSize="11" Foreground="#999" Margin="0,10,0,0" HorizontalAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Grid.Column="2" Background="White" CornerRadius="8" Padding="15" BorderBrush="#E0E0E0" BorderThickness="1">
+                            <Border.Effect>
+                                <DropShadowEffect BlurRadius="10" ShadowDepth="2" Direction="270" Color="#EEE" Opacity="0.5"/>
+                            </Border.Effect>
+                            <StackPanel>
+                                <TextBlock Text="Jokalaria" FontSize="18" FontWeight="Bold" Foreground="#333" Margin="0,0,0,10"/>
+                                <Separator Margin="0,0,0,15"/>
+
+                                <TextBlock Text="Aukeratu Erabiltzailea:" Foreground="#666" Margin="0,0,0,5"/>
+                                <ComboBox x:Name="comboErabiltzaileak" Height="35" Margin="0,0,0,20" VerticalContentAlignment="Center"/>
+
+                                <Button x:Name="jokalariStatistikak_btn" 
+                                        Content="Sortu PDF Txostena" 
+                                        Height="40" 
+                                        Background="#FF00A86B" 
+                                        Foreground="White" 
+                                        FontWeight="Bold"
+                                        Cursor="Hand"
+                                        BorderThickness="0" Click="jokalariStatistikak_btn_Click">
+                                    <Button.Resources>
+                                        <Style TargetType="Border">
+                                            <Setter Property="CornerRadius" Value="4"/>
+                                        </Style>
+                                    </Button.Resources>
+                                </Button>
+                                <TextBlock Text="Irabaziak, galerak eta %winrate." TextWrapping="Wrap" FontSize="11" Foreground="#999" Margin="0,10,0,0" HorizontalAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Grid.Column="4" Background="White" CornerRadius="8" Padding="15" BorderBrush="#E0E0E0" BorderThickness="1">
+                            <Border.Effect>
+                                <DropShadowEffect BlurRadius="10" ShadowDepth="2" Direction="270" Color="#EEE" Opacity="0.5"/>
+                            </Border.Effect>
+                            <StackPanel>
+                                <TextBlock Text="Ranking" FontSize="18" FontWeight="Bold" Foreground="#333" Margin="0,0,0,10"/>
+                                <Separator Margin="0,0,0,15"/>
+
+                                <TextBlock Text="Top 10 jokalariak ikusi:" Foreground="#666" Margin="0,0,0,5"/>
+                                <Border Height="80" Background="#F5F5F5" CornerRadius="4" Margin="0,0,0,20">
+                                    <TextBlock Text="🏆" FontSize="40" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+
+                                <Button x:Name="top_btn" 
+                                        Content="Sortu Top 10 PDF" 
+                                        Height="40" 
+                                        Background="#FF00A86B" 
+                                        Foreground="White" 
+                                        FontWeight="Bold"
+                                        Cursor="Hand"
+                                        BorderThickness="0" Click="top_btn_Click_1">
+                                    <Button.Resources>
+                                        <Style TargetType="Border">
+                                            <Setter Property="CornerRadius" Value="4"/>
+                                        </Style>
+                                    </Button.Resources>
+                                </Button>
+                                <TextBlock Text="Elo altuena duten jokalarien zerrenda." TextWrapping="Wrap" FontSize="11" Foreground="#999" Margin="0,10,0,0" HorizontalAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+                </ScrollViewer>
+            </TabItem>
         </TabControl>
     </Grid>
 </Window>

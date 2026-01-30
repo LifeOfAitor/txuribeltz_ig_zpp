@@ -9,6 +9,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="QuestPDF" Version="2025.12.3" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\txuribeltz_server\txuribeltz_server.csproj" />
   </ItemGroup>
 
