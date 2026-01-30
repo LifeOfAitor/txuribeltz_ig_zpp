@@ -1,4 +1,6 @@
-﻿using System.Net;
+﻿using Npgsql.Internal;
+using System.Net;
+using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Text;
 using txuribeltz_server;
@@ -18,16 +20,45 @@ public class Server
     // Martxan dauden partiden Diktionarioa, bertan Partida objektuak gordeko dira
     private static readonly Dictionary<string, Partida> partidaAktiboak = new();
 
+    // zerbitzariaren IP helbidea lortzeko metodoa 100% IA egina
+    static string GetLocalIPAddress()
+    {
+        foreach (var ni in NetworkInterface.GetAllNetworkInterfaces())
+        {
+            if (ni.OperationalStatus != OperationalStatus.Up)
+                continue;
+
+            foreach (var ip in ni.GetIPProperties().UnicastAddresses)
+            {
+                if (ip.Address.AddressFamily == AddressFamily.InterNetwork &&
+                    !IPAddress.IsLoopback(ip.Address))
+                {
+                    return ip.Address.ToString();
+                }
+            }
+        }
+
+        throw new Exception("Ez da aurkitu IP-a konpotik konektatzeko");
+    }
+
+    // Zerbitzariaren metodo nagusia, zerbitzaria hasi eta bezeroak onartzen eta kudeatzen dituena
     public static async Task Main(string[] args)
     {
         // Zerbitzariaren datuak
         string servidor = "127.0.0.1";
+        string servidorV2 = GetLocalIPAddress();
         IPAddress ipserver = IPAddress.Parse(servidor);
         int port = 13000;
 
         // TCP listener sortu eta martxan jarri
-        TcpListener listener = new(ipserver, port);
-        Console.WriteLine("Zerbitzaria martxan dago {0}:{1}", servidor, port);
+        // LOCALHOST
+        //TcpListener listener = new(ipserver, port);
+        // LOCALHOST baina edozein IP-tik konektatu ahal izateko
+        TcpListener listener = new(IPAddress.Any, port);
+        //Console.WriteLine("Zerbitzaria martxan dago {0}:{1}", servidor, port);
+        Console.WriteLine($"Zerbitzaria martxan dago {port} portuan");
+        Console.WriteLine($"Bezeroa ordenagailu honetan badago konektatu IP helbide honekin:              {servidor}");
+        Console.WriteLine($"Bezeroa sareko beste ordenagailu batean badago konektatu IP helbide honekin:  {servidorV2}");
         listener.Start();
 
         // Database konexioa sortu, lortzen duenean aurrera jarraituko du
@@ -125,7 +156,7 @@ public class Server
         TcpClient socketCliente,
         BezeroKonektatuaDatuBasean? logeatutakoBezeroa)
     {
-
+        // case luzeak beste metodo batzuetan banandu ditut kodearen egokiera mantentzeko
         switch (agindua)
         {
             case "LOGIN" when mezuarenzatiak.Length == 3:
@@ -148,37 +179,8 @@ public class Server
                 break;
 
             case "USERDATA":
-                // banandu behar da, datuak erabiltzaileak eskatzen dituenean edo adminak beste erabiltzaile baten datuak eskatzen dituenean
-                if (logeatutakoBezeroa.Mota == "admin" && mezuarenzatiak.Length == 2)
-                {
-                    // adminak beste erabiltzaile baten datuak eskatzen ditu
-                    string erabiltzailea = mezuarenzatiak[1];
-                    string? emaitza = databaseOperations.lortuBezeroInformazioaMenurako(erabiltzailea);
-                    if (!string.IsNullOrEmpty(emaitza))
-                    {
-                        writer.WriteLine(emaitza); //DATA:erabiltzailea:elo:partidakJokatu:partidakIrabazi:winrate
-                    }
-                    else
-                    {
-                        Console.WriteLine($"ERROR:{erabiltzailea} datuak ez dira aurkitu");
-                    }
-                    break;
-                }
-                else
-                {
-                    // erabiltzaileak bere datuak eskatzen ditu
-                    string? emaitza = databaseOperations.lortuBezeroInformazioaMenurako(logeatutakoBezeroa.Erabiltzailea);
-
-                    if (!string.IsNullOrEmpty(emaitza))
-                    {
-                        writer.WriteLine(emaitza); //DATA:erabiltzailea:elo:partidakJokatu:partidakIrabazi:winrate
-                    }
-                    else
-                    {
-                        Console.WriteLine($"ERROR:{logeatutakoBezeroa.Erabiltzailea} datuak ez dira aurkitu");
-                    }
-                    break;
-                }
+                userdataKudeatu(logeatutakoBezeroa, mezuarenzatiak, writer);
+                break;
 
             case "GET_DATA_STATS":
                 DateTime hasieradata = DateTime.Parse(mezuarenzatiak[1]);
@@ -199,93 +201,11 @@ public class Server
                 break;
 
             case "FIND_MATCH":
-                if (logeatutakoBezeroa != null)
-                {
-                    Console.WriteLine($"DEBUG: {logeatutakoBezeroa.Erabiltzailea} partida bilatzen");
-                    GehituKolara(logeatutakoBezeroa);
-
-                    // Bilatu aurkalaria
-                    var aurkalaria = AurkituAurkalaria(logeatutakoBezeroa);
-                    if (aurkalaria != null)
-                    {
-                        //Console.WriteLine($"DEBUG: Partidua aurkitu - {logeatutakoBezeroa.Erabiltzailea} vs {aurkalaria.Erabiltzailea}");
-
-                        // Lortu aurkalariaren datuak
-                        string? aurkalariElo = databaseOperations.eloLortu(aurkalaria.Erabiltzailea);
-                        // Lortu logeatuaren datuak
-                        string? logeatuaElo = databaseOperations.eloLortu(logeatutakoBezeroa.Erabiltzailea);
-
-                        if (!string.IsNullOrEmpty(aurkalariElo) && !string.IsNullOrEmpty(logeatuaElo))
-                        {
-                            // Bidali aurkalariaren datuak logeatuari
-                            writer.WriteLine($"MATCH_FOUND:{aurkalaria.Erabiltzailea}:{aurkalariElo}");
-                            //Console.WriteLine($"DEBUG: {logeatutakoBezeroa.Erabiltzailea} jakin dezan aurkalaria: {aurkalaria.Erabiltzailea}");
-
-                            // Bidali logeatuaren datuak aurkariari
-                            aurkalaria.Writer.WriteLine($"MATCH_FOUND:{logeatutakoBezeroa.Erabiltzailea}:{logeatuaElo}");
-                            //Console.WriteLine($"DEBUG: {aurkalaria.Erabiltzailea} jakin dezan aurkalaria: {logeatutakoBezeroa.Erabiltzailea}");
-                        }
-
-                        // Kendu biak kolatik partida aurkitu dutelako
-                        KenduKolatik(logeatutakoBezeroa);
-                        KenduKolatik(aurkalaria);
-                    }
-                    else
-                    {
-                        //Console.WriteLine($"DEBUG: {logeatutakoBezeroa.Erabiltzailea} itxaroten, aurkalaririk ez");
-                    }
-                }
+                findMatchKudeatu(logeatutakoBezeroa, writer);
                 break;
 
             case "START_MATCH":
-                //Console.WriteLine($"DEBUG: START_MATCH jaso - mezuarenzatiak.Length: {mezuarenzatiak.Length}");
-                if (logeatutakoBezeroa != null && mezuarenzatiak.Length >= 2)
-                {
-                    string oponentea = mezuarenzatiak[1];
-                    var aurkalaria = zerbitzarikoBezeroak.FirstOrDefault(b => b.Erabiltzailea == oponentea);
-
-                    if (aurkalaria != null)
-                    {
-                        // Sortu PartidaId name1_name2 eran (alfabetikoki ordenatuta)
-                        var izenak = new[] { logeatutakoBezeroa.Erabiltzailea, oponentea };
-                        Array.Sort(izenak);
-                        string partidaID = $"{izenak[0]}_{izenak[1]}";
-
-                        lock (lockObject)
-                        {
-                            // Egiaztatu partida ez dagoela jadanik
-                            if (partidaAktiboak.ContainsKey(partidaID))
-                            {
-                                //Console.WriteLine($"DEBUG: Partida {partidaID} dagoeneko existitzen da");
-                                writer.WriteLine("ERROR:Partida dagoeneko hasita dago");
-                                break;
-                            }
-
-                            // Sortu partida berria
-                            var partida = new Partida(partidaID, logeatutakoBezeroa, aurkalaria);
-                            partidaAktiboak[partidaID] = partida;
-
-                            // Gorde PartidaID bi bezeroetan
-                            logeatutakoBezeroa.PartidaID = partidaID;
-                            aurkalaria.PartidaID = partidaID;
-
-                            Console.WriteLine($"PARTIDA SORTU DA -> Partida id:{partidaID} -> {logeatutakoBezeroa} eta {aurkalaria}");
-                        }
-
-                        // Bidali biei partida hasi dela
-                        partidaAktiboak[partidaID].BidaliBieiei($"MATCH_STARTED:{partidaID}");
-                        //Console.WriteLine($"DEBUG: MATCH_STARTED bidalita bieei - {partidaID}");
-                    }
-                    else
-                    {
-                        //Console.WriteLine($"DEBUG: ERROREA - Aurkalaria {oponentea} ez da aurkitu zerbitzarian");
-                        writer.WriteLine("ERROR:Aurkalaria ez da aurkitu");
-                    }
-                }
-                else
-                {
-                    Console.WriteLine($"DEBUG: START_MATCH - parametro falta edo bezeroa null");
-                }
+                startMatchKudeatu(logeatutakoBezeroa, mezuarenzatiak, writer);
                 break;
 
             // Txat mezua jaso eta partida objektuari pasatu mezua kudeatzeko
@@ -377,6 +297,131 @@ public class Server
                 break;
         }
         return logeatutakoBezeroa;
+    }
+
+    private static void startMatchKudeatu(BezeroKonektatuaDatuBasean logeatutakoBezeroa, string[] mezuarenzatiak, StreamWriter writer)
+    {
+        //Console.WriteLine($"DEBUG: START_MATCH jaso - mezuarenzatiak.Length: {mezuarenzatiak.Length}");
+        if (logeatutakoBezeroa != null && mezuarenzatiak.Length >= 2)
+        {
+            string oponentea = mezuarenzatiak[1];
+            var aurkalaria = zerbitzarikoBezeroak.FirstOrDefault(b => b.Erabiltzailea == oponentea);
+
+            if (aurkalaria != null)
+            {
+                // Sortu PartidaId name1_name2 eran (alfabetikoki ordenatuta)
+                var izenak = new[] { logeatutakoBezeroa.Erabiltzailea, oponentea };
+                Array.Sort(izenak);
+                string partidaID = $"{izenak[0]}_{izenak[1]}";
+
+                lock (lockObject)
+                {
+                    // Egiaztatu partida ez dagoela jadanik
+                    if (partidaAktiboak.ContainsKey(partidaID))
+                    {
+                        //Console.WriteLine($"DEBUG: Partida {partidaID} dagoeneko existitzen da");
+                        writer.WriteLine("ERROR:Partida dagoeneko hasita dago");
+                        return;
+                    }
+
+                    // Sortu partida berria
+                    var partida = new Partida(partidaID, logeatutakoBezeroa, aurkalaria);
+                    partidaAktiboak[partidaID] = partida;
+
+                    // Gorde PartidaID bi bezeroetan
+                    logeatutakoBezeroa.PartidaID = partidaID;
+                    aurkalaria.PartidaID = partidaID;
+
+                    Console.WriteLine($"PARTIDA SORTU DA -> Partida id:{partidaID} -> {logeatutakoBezeroa} eta {aurkalaria}");
+                }
+
+                // Bidali biei partida hasi dela
+                partidaAktiboak[partidaID].BidaliBieiei($"MATCH_STARTED:{partidaID}");
+                //Console.WriteLine($"DEBUG: MATCH_STARTED bidalita bieei - {partidaID}");
+            }
+            else
+            {
+                //Console.WriteLine($"DEBUG: ERROREA - Aurkalaria {oponentea} ez da aurkitu zerbitzarian");
+                writer.WriteLine("ERROR:Aurkalaria ez da aurkitu");
+            }
+        }
+        else
+        {
+            Console.WriteLine($"DEBUG: START_MATCH - parametro falta edo bezeroa null");
+        }
+    }
+
+    private static void findMatchKudeatu(BezeroKonektatuaDatuBasean logeatutakoBezeroa, StreamWriter writer)
+    {
+        if (logeatutakoBezeroa != null)
+        {
+            //Console.WriteLine($"DEBUG: {logeatutakoBezeroa.Erabiltzailea} partida bilatzen");
+            GehituKolara(logeatutakoBezeroa);
+
+            // Bilatu aurkalaria
+            var aurkalaria = AurkituAurkalaria(logeatutakoBezeroa);
+            if (aurkalaria != null)
+            {
+                //Console.WriteLine($"DEBUG: Partidua aurkitu - {logeatutakoBezeroa.Erabiltzailea} vs {aurkalaria.Erabiltzailea}");
+
+                // Lortu aurkalariaren datuak
+                string? aurkalariElo = databaseOperations.eloLortu(aurkalaria.Erabiltzailea);
+                // Lortu logeatuaren datuak
+                string? logeatuaElo = databaseOperations.eloLortu(logeatutakoBezeroa.Erabiltzailea);
+
+                if (!string.IsNullOrEmpty(aurkalariElo) && !string.IsNullOrEmpty(logeatuaElo))
+                {
+                    // Bidali aurkalariaren datuak logeatuari
+                    writer.WriteLine($"MATCH_FOUND:{aurkalaria.Erabiltzailea}:{aurkalariElo}");
+                    //Console.WriteLine($"DEBUG: {logeatutakoBezeroa.Erabiltzailea} jakin dezan aurkalaria: {aurkalaria.Erabiltzailea}");
+
+                    // Bidali logeatuaren datuak aurkariari
+                    aurkalaria.Writer.WriteLine($"MATCH_FOUND:{logeatutakoBezeroa.Erabiltzailea}:{logeatuaElo}");
+                    //Console.WriteLine($"DEBUG: {aurkalaria.Erabiltzailea} jakin dezan aurkalaria: {logeatutakoBezeroa.Erabiltzailea}");
+                }
+
+                // Kendu biak kolatik partida aurkitu dutelako
+                KenduKolatik(logeatutakoBezeroa);
+                KenduKolatik(aurkalaria);
+            }
+            else
+            {
+                //Console.WriteLine($"DEBUG: {logeatutakoBezeroa.Erabiltzailea} itxaroten, aurkalaririk ez");
+            }
+        }
+    }
+
+    private static void userdataKudeatu(BezeroKonektatuaDatuBasean logeatutakoBezeroa, string[] mezuarenzatiak, StreamWriter writer)
+    {
+        // banandu behar da, datuak erabiltzaileak eskatzen dituenean edo adminak beste erabiltzaile baten datuak eskatzen dituenean
+        if (logeatutakoBezeroa.Mota == "admin" && mezuarenzatiak.Length == 2)
+        {
+            // adminak beste erabiltzaile baten datuak eskatzen ditu
+            string erabiltzailea = mezuarenzatiak[1];
+            string? emaitza = databaseOperations.lortuBezeroInformazioaMenurako(erabiltzailea);
+            if (!string.IsNullOrEmpty(emaitza))
+            {
+                writer.WriteLine(emaitza); //DATA:erabiltzailea:elo:partidakJokatu:partidakIrabazi:winrate
+            }
+            else
+            {
+                Console.WriteLine($"ERROR:{erabiltzailea} datuak ez dira aurkitu");
+            }
+        }
+        else
+        {
+            // erabiltzaileak bere datuak eskatzen ditu
+            string? emaitza = databaseOperations.lortuBezeroInformazioaMenurako(logeatutakoBezeroa.Erabiltzailea);
+
+            if (!string.IsNullOrEmpty(emaitza))
+            {
+                writer.WriteLine(emaitza); //DATA:erabiltzailea:elo:partidakJokatu:partidakIrabazi:winrate
+            }
+            else
+            {
+                Console.WriteLine($"ERROR:{logeatutakoBezeroa.Erabiltzailea} datuak ez dira aurkitu");
+            }
+        }
     }
 
     // Bezeroa datu basean autentikatzen du eta konprobazioak egiten ditu, dena ondo badago,
