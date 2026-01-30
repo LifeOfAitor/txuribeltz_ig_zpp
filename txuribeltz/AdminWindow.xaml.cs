@@ -1,18 +1,7 @@
 ﻿using QuestPDF.Fluent;
 using QuestPDF.Infrastructure;
-using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Threading;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 using txuribeltz_server;
 using IOPath = System.IO.Path;
 namespace txuribeltz
@@ -39,7 +28,7 @@ namespace txuribeltz
 
             // Zerbitzariaren mezuak entzuten egon
             HasiMezuakEntzuten();
-            
+
             // Eskatu zerbitzariari erabiltzaileen informazioa, erakutsi eta editatu ahal izateko
             erakutsiErabiltzaileak();
         }
@@ -75,94 +64,169 @@ namespace txuribeltz
         }
 
         // Zerbitzaritik datorren mezua prozesatuko duen metodoa.
-        // Agindua bananduko da eta mezua ere, aginduaren arabera ekintza ezberdinak kudeatuko dira.
+        // Mezuak "KOMANDOA:arg1:arg2:..." formatuan etorriko direla suposatzen da.
+        // Salbuespena: "USERS_LIST:" mezua, bertan payload-a luzea izan daiteke eta ":" karakterea behin bakarrik zatitzea interesatzen zaigu.
         private void prozesatuMezua(string mezua)
         {
-            // Egiaztatu mezua USERS_LIST motakoa den
-            if (mezua.StartsWith("USERS_LIST:"))
+            // Mezu hutsak edo null badaude, ez dugu ezer egingo
+            if (string.IsNullOrWhiteSpace(mezua))
+                return;
+
+            // USERS_LIST kasua berezia da:
+            // - Formatoa: USERS_LIST:user1|mota1|pass1;user2|mota2|pass2
+            // - ":" karakterea behin bakarrik zatitzea nahi dugu (Split(...,2))
+            if (mezua.StartsWith("USERS_LIST:", StringComparison.Ordinal))
             {
-                // Parseatu erabiltzaile lista: USERS_LIST:user1|mota1|pass1;user2|mota2|pass2
-
-                // 1. Zatitu mezua lehenengo ':' karakterean, gehienez 2 zatitan
-                //    parts[0] = "USERS_LIST" (protokoloaren komandoa)
-                //    parts[1] = "user1|mota1|pass1;user2|mota2|pass2" (erabiltzaileen datuak)
-                string[] parts = mezua.Split(new[] { ':' }, 2);
-
-                // 2. Egiaztatu bigarren zatia existitzen dela eta ez dagoela hutsik
-                if (parts.Length > 1 && !string.IsNullOrWhiteSpace(parts[1]))
-                {
-                    // 3. Garbitu erabiltzaileen zerrenda lehendik dauden erabiltzaileak ezabatzeko
-                    erabiltzaileak.Clear();
-
-                    // 4. Zatitu erabiltzaileen datuak ';' karakterearen bidez
-                    //    Erabiltzaile bakoitza ';' karaktereaz bereizita dago
-                    //    Adib: ["user1|mota1|pass1;user2|mota2|pass2"]
-                    string[] userEntries = parts[1].Split(';');
-
-                    // 5. Erabiltzaile bakoitza prozesatu
-                    foreach (string userEntry in userEntries)
-                    {
-                        // Saltatu sarrera hutsak
-                        if (string.IsNullOrWhiteSpace(userEntry))
-                            continue;
-
-                        // 6. Zatitu erabiltzaile bakoitzaren datuak '|' karakterearen bidez
-                        //    userData[0] = erabiltzaile izena
-                        //    userData[1] = mota (admin edo user)
-                        //    userData[2] = pasahitza
-                        string[] userData = userEntry.Split('|');
-
-                        // 7. Egiaztatu 3 datu daudela gutxienez
-                        if (userData.Length >= 3)
-                        {
-                            // 8. Sortu Erabiltzaile objektu berria eta gehitu zerrendara
-                            erabiltzaileak.Add(new Erabiltzaile
-                            {
-                                Erabiltzailea = userData[0].Trim(), // Kendu zuriuneak hasieran eta amaieran
-                                Mota = userData[1].Trim(),
-                                Pasahitza = userData[2].Trim()
-                            });
-                            // Gehitu erabiltzaile izena combo box-era
-                            comboErabiltzaileak.Items.Add(userData[0].Trim());
-                        }
-                    }
-
-                    // 9. Eguneratu DataGrid-a erabiltzaile berrien zerrendarekin
-                    //    Lehenengo null jarri eta gero zerrenda berria esleitu DataGrid-a behar bezala freskatzeko
-                    dgUsers.ItemsSource = null;
-                    dgUsers.ItemsSource = erabiltzaileak;
-                }
-                else
-                {
-                    // Ez dago daturik mezuan
-                    erabiltzaileak.Clear();
-                    dgUsers.ItemsSource = null;
-                    MessageBox.Show("Ez dago erabiltzailerik.");
-                }
-            } else if (mezua.StartsWith("TOP10:"))
-            {
-                string[] mezuarenzatiak = mezua.Split(":");
-                List<string> erabiltzaileak = mezuarenzatiak[1].Split(';').ToList();
-                // TOP 10 jokalariak PDF batean exportatu edo erakutsi
-                exportTo10(erabiltzaileak);
-            } else if (mezua.StartsWith("DATA:"))
-            {
-                string[] mezuarenzatiak = mezua.Split(":");
-
-                string erabiltzailea = mezuarenzatiak[1];
-                string elo = mezuarenzatiak[2];
-                string irabaziak = mezuarenzatiak[3];
-                string galduak = mezuarenzatiak[4];
-                string winrate = $"{mezuarenzatiak[5]}";
-                // Erabiltzailearen datuak erakutsi PDF batean
-                exportErabiltzailePDF(erabiltzailea, elo, irabaziak, galduak, winrate);
-            } else if (mezua.StartsWith("COUNT_PARTIDAK")){
-                string[] mezuarenzatiak = mezua.Split(":");
-                string partidaKopurua = mezuarenzatiak[1];
-                string datahasiera = datePickerHasi.SelectedDate?.ToString("yyyy-MM-dd") ?? "";
-                string dataamaiera = datePickerBukatu.SelectedDate?.ToString("yyyy-MM-dd") ?? "";
-                exportPartidaKopuruaPDF(partidaKopurua, datahasiera, dataamaiera);
+                KudeatuUsersList(mezua);
+                return;
             }
+
+            // Beste mezu guztietan, protokoloa honakoa da:
+            // KOMANDOA:informazioa:informazioa...
+            string[] zatiak = mezua.Split(':');
+
+            // Segurtasunagatik: Split-ak array hutsa itzuli dezake egoera arraroetan
+            if (zatiak.Length == 0)
+                return;
+
+            string komandoa = zatiak[0];
+
+            // Server.cs-en antzera: komandoaren arabera ekintza bat edo beste
+            switch (komandoa)
+            {
+                case "TOP10":
+                    KudeatuTop10(zatiak);
+                    break;
+
+                case "DATA":
+                    KudeatuErabiltzaileDatuak(zatiak);
+                    break;
+
+                case "COUNT_PARTIDAK":
+                    KudeatuPartidaKopurua(zatiak);
+                    break;
+
+                default:
+                    // Beste mezu mota batzuk baldin badaude, hemen gehitu daitezke.
+                    break;
+            }
+        }
+
+        // USERS_LIST mezua kudeatzen duen metodoa.
+        // Helburua: erabiltzaileak listan/taulan kargatu eta combo-a eguneratu.
+        private void KudeatuUsersList(string mezua)
+        {
+            // Split(...,2): "USERS_LIST" eta informazioa (erabiltzaile guztiak) banatzeko,
+            // informazioaren barruan ":" agertuz gero ez puskatzeko.
+            string[] mezuarenzatiak = mezua.Split(new[] { ':' }, 2);
+
+            // Informaziorik ez badago edo hutsik badago, zerrendak garbitu eta abisatu
+            if (mezuarenzatiak.Length <= 1 || string.IsNullOrWhiteSpace(mezuarenzatiak[1]))
+            {
+                erabiltzaileak.Clear();
+                dgUsers.ItemsSource = null;
+
+                // ez dugu combo-a betetzen daturik ez badago
+                comboErabiltzaileak.Items.Clear();
+
+                MessageBox.Show("Ez dago erabiltzailerik.");
+                return;
+            }
+
+            // Erabiltzaileen zerrenda berriro kargatuko dugu, beraz lehenengo garbitu
+            erabiltzaileak.Clear();
+
+            // GET_USERS berriz jasotzean izenak bikoiztuta agertzen dira comboan beraz garbitu
+            comboErabiltzaileak.Items.Clear();
+
+            // Erabiltzaile bakoitza ';' karakterearekin dator bananduta
+            string[] userEntries = mezuarenzatiak[1].Split(';');
+
+            foreach (string userEntry in userEntries)
+            {
+                // Sarrera hutsak saltatu
+                if (string.IsNullOrWhiteSpace(userEntry))
+                    continue;
+
+                // userEntry formatoa: username|mota|password
+                string[] userData = userEntry.Split('|');
+
+                // Gutxienez 3 eremu behar dira (izena, mota, pasahitza)
+                if (userData.Length < 3)
+                    continue;
+
+                // Erabiltzaile objektua sortu
+                var erabiltzaile = new Erabiltzaile
+                {
+                    Erabiltzailea = userData[0].Trim(),
+                    Mota = userData[1].Trim(),
+                    Pasahitza = userData[2].Trim()
+                };
+
+                // Zerrendara gehitu (DataGrid-erako)
+                erabiltzaileak.Add(erabiltzaile);
+
+                // ComboBox-era erabiltzaileen izenak bakarrik gehitzen ditugu (adminak aukeratzeko)
+                comboErabiltzaileak.Items.Add(erabiltzaile.Erabiltzailea);
+            }
+
+            // DataGrid-a eguneratzeko modu erraza: ItemsSource null eta berriro esleitu
+            dgUsers.ItemsSource = null;
+            dgUsers.ItemsSource = erabiltzaileak;
+        }
+
+        // TOP10 mezua kudeatzen duen metodoa.
+        // Formatoa: TOP10:user|elo;user2|elo2;...
+        private void KudeatuTop10(string[] mezuarenzatiak)
+        {
+            // Gutxienez TOP10 eta payload-a behar ditugu
+            if (mezuarenzatiak.Length < 2)
+                return;
+
+            // zatiak[1] = "user|elo;user2|elo2;..."
+            List<string> top = mezuarenzatiak[1].Split(';').ToList();
+
+            // PDF-a sortu eta ireki
+            exportTo10(top);
+        }
+
+        // DATA mezua kudeatzen duen metodoa (erabiltzaile baten estatistikak).
+        // Formatoa: DATA:username:elo:wins:losses:winrate
+        private void KudeatuErabiltzaileDatuak(string[] mezuarenzatiak)
+        {
+            // Gutxienez 6 zati behar ditugu (DATA, username, elo, wins, losses, winrate)
+            if (mezuarenzatiak.Length < 6)
+                return;
+
+            // Server-etik datorren ordena mantendu
+            string erabiltzailea = mezuarenzatiak[1];
+            string elo = mezuarenzatiak[2];
+            string irabaziak = mezuarenzatiak[3];
+            string galduak = mezuarenzatiak[4];
+            string winrate = mezuarenzatiak[5];
+
+            // PDF-a sortu eta ireki
+            exportErabiltzailePDF(erabiltzailea, elo, irabaziak, galduak, winrate);
+        }
+
+        // COUNT_PARTIDAK mezua kudeatzen duen metodoa (data tarte bateko partida kopurua).
+        // Formatoa: COUNT_PARTIDAK:123
+        private void KudeatuPartidaKopurua(string[] mezuarenzatiak)
+        {
+            // Gutxienez COUNT_PARTIDAK eta kopurua behar dugu
+            if (mezuarenzatiak.Length < 2)
+                return;
+
+            // zatiak[1] = partida kopurua
+            string partidaKopurua = mezuarenzatiak[1];
+
+            // DataPicker-eko datak hartu, PDF-an tartea ondo erakusteko
+            // (Server-etik ez badatoz datak bueltan, behintzat UI-tik hartu eta erakutsi)
+            string datahasiera = datePickerHasi.SelectedDate?.ToString("yyyy-MM-dd") ?? "";
+            string dataamaiera = datePickerBukatu.SelectedDate?.ToString("yyyy-MM-dd") ?? "";
+
+            // PDF-a sortu eta ireki
+            exportPartidaKopuruaPDF(partidaKopurua, datahasiera, dataamaiera);
         }
 
         // erabiltzaileak zerrendan kargatu
@@ -224,11 +288,11 @@ namespace txuribeltz
 
                     // Bidali pasahitza aldatzeko mezua zerbitzariari
                     writer.WriteLine($"CHANGE_P:{izena}:{pasahitzaBerria}");
-                    
+
                     // Itxaron pixka bat eta freskatu erabiltzaileen zerrenda
                     Thread.Sleep(500);
                     erakutsiErabiltzaileak();
-                    
+
                     //MessageBox.Show($"{izena} erabiltzailearen pasahitza aldatu da.");
                 }
             }
@@ -244,7 +308,7 @@ namespace txuribeltz
             try
             {
                 var erabiltzaileAukeratua = dgUsers.SelectedItem as Erabiltzaile;
-                
+
                 if (erabiltzaileAukeratua == null)
                 {
                     MessageBox.Show("Aukeratu erabiltzaile bat lehenik.");
@@ -265,11 +329,11 @@ namespace txuribeltz
                 {
                     // Bidali ezabatzeko mezua zerbitzariari
                     writer.WriteLine($"DELETE:{izena}");
-                    
+
                     // Itxaron pixka bat eta eguneratu erabiltzaileen zerrenda
                     Thread.Sleep(500);
                     erakutsiErabiltzaileak();
-                    
+
                     MessageBox.Show($"{izena} erabiltzailea ezabatu da.");
                 }
             }
@@ -287,7 +351,7 @@ namespace txuribeltz
                 // Aukeratutako datak hartu eta egiaztatu
                 string datahasiera = datePickerHasi.SelectedDate?.ToString("yyyy-MM-dd") ?? "";
                 string dataamaiera = datePickerBukatu.SelectedDate?.ToString("yyyy-MM-dd") ?? "";
-                
+
                 if (datePickerHasi.SelectedDate > datePickerBukatu.SelectedDate)
                 {
                     MessageBox.Show("Hasierako data ezin da amaierako data baina beranduagoa izan.");

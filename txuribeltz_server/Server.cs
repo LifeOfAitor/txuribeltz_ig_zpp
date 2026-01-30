@@ -346,7 +346,7 @@ public class Server
                         string? irabazlea = mezuarenzatiak[1];
                         partida.AmaituPartida(irabazlea);
                         // bidali irabazleari mezua eta kendu partida
-                        
+
                         KenduPartida(partida.PartidaID);
                         //Console.WriteLine($"DEBUG: partida bukatuta eta ezabatuta");
                     }

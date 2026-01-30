@@ -1,5 +1,4 @@
 ﻿using System.Net.Sockets;
-using System.IO;
 
 // Datu basean konektatutako bezeroaren informazioa gordetzeko klasea
 // Socket, erabiltzaile izena, mota, elo, StreamWriter eta StreamReader eta partidan badago, partidaren ID gordeko da.

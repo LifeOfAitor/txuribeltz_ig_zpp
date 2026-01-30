@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using QuestPDF.Fluent;
+using QuestPDF.Helpers;
+using QuestPDF.Infrastructure;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
-using System.Linq;
-using QuestPDF.Fluent;
-using QuestPDF.Helpers;
-using QuestPDF.Infrastructure;
 
 namespace txuribeltz;
 

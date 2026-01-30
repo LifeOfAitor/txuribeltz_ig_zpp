@@ -1,5 +1,4 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -19,6 +18,9 @@ namespace txuribeltz
         private string aurkalaria;
         private Button[,] taulakoBotoiak; // Jokuaren taula botoi array bat izango da
         private bool shouldListen = true; //zerbitzaritik mezuak jasotzen jarraitu behar den kontrolatzeko
+
+        private bool matchEnded = false; // partida amaitu den kontrolatzeko
+        private bool suppressClosingHandler = false; // lehioa itxi denean ekintza ez egiteko kontrolatzeko
 
         public GameWindow(StreamReader reader, StreamWriter writer, string erabiltzailea, string erabiltzaileaElo, string aurkalaria, string aurkalariaElo)
         {
@@ -117,14 +119,16 @@ namespace txuribeltz
                 case "MATCH_END":
                     string emaitza = mezuarenzatiak.Length > 1 ? mezuarenzatiak[1] : "";
                     string endMezua = mezuarenzatiak.Length > 2 ? mezuarenzatiak[2] : "Partida amaitu da";
+                    matchEnded = true;
                     shouldListen = false;
                     gehituTxatMezua("SYSTEM", endMezua, false);
                     // partida bukatu dela adieraziko du
                     MessageBox.Show(endMezua);
                     // erabiltzaile menura bueltatuko gara
+                    suppressClosingHandler = true;
                     UserWindow userWin = new UserWindow(reader, writer, erabiltzailea);
                     userWin.Show();
-                    this.Close();
+                    Close();
                     break;
                 default:
                     break;
@@ -178,7 +182,7 @@ namespace txuribeltz
         {
             Button cell = (Button)sender;
             string position = cell.Tag.ToString();
-            
+
             // Zerbitzariari bidali posizioa
             writer.WriteLine($"MOVE:{position}");
         }
@@ -228,7 +232,7 @@ namespace txuribeltz
             };
 
             StackPanel messagePanel = new StackPanel();
-            
+
             TextBlock senderText = new TextBlock
             {
                 Text = sender,
@@ -249,7 +253,7 @@ namespace txuribeltz
             messagePanel.Children.Add(senderText);
             messagePanel.Children.Add(messageText);
             messageBorder.Child = messagePanel;
-            
+
             chatMessages.Children.Add(messageBorder);
             chatScroll.ScrollToBottom();
         }
@@ -258,8 +262,8 @@ namespace txuribeltz
         // Lehioa itxiko da eta user lehioa irekiko da
         private void Surrender_Click(object sender, RoutedEventArgs e)
         {
-            var result = MessageBox.Show("Ziur zaude amore eman nahi duzula?", 
-                                         "Amore eman", 
+            var result = MessageBox.Show("Ziur zaude amore eman nahi duzula?",
+                                         "Amore eman",
                                          MessageBoxButton.YesNo);
             if (result == MessageBoxResult.Yes)
             {
@@ -278,6 +282,27 @@ namespace txuribeltz
             {
                 writer.WriteLine($"WIN:{aurkalaria}");
             }
+        }
+
+        // Surrender_Click egiten den moduan funtzionatzen du, baina lehioa itxi egiten denean
+        private void itxiAplikazioa(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            // partida amaitu bada edo amore eman edo utzi egin bada, ez da ezer egingo
+            if (suppressClosingHandler || matchEnded)
+                return;
+
+            var result = MessageBox.Show("Ziur zaude itxi nahi duzula? Galdu egingo duzu.",
+                                         "Itxi aplikazioa",
+                                         MessageBoxButton.YesNo);
+
+            // erabiltzaileak ez badu onartzen, ez da itxiko
+            if (result != MessageBoxResult.Yes)
+            {
+                e.Cancel = true;
+                return;
+            }
+
+            writer.WriteLine($"WIN:{aurkalaria}");
         }
     }
 }

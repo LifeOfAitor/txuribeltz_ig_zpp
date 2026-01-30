@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace txuribeltz_server
+﻿namespace txuribeltz_server
 {
     /*
      * Admin erabiltzaileak nahi dituen operazioak egiteko behar duen erabiltzaileen informazioa gordeko du objetu honek

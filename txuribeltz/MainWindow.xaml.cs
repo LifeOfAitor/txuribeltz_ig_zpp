@@ -1,16 +1,8 @@
-﻿using System.Diagnostics;
-using System.IO;
+﻿using System.IO;
 using System.Net.Sockets;
 using System.Text;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace txuribeltz
 {
@@ -30,7 +22,7 @@ namespace txuribeltz
             InitializeComponent();
 
             //zerbitzarira konektatuko gara lehenengo
-            zerbitzariraKonektatu(); 
+            zerbitzariraKonektatu();
         }
 
         // zerbitzarira konektatzeko metodoa, errefaktorizatu beharko litzateke, beste klaseetan daukadan bezala
@@ -68,12 +60,12 @@ namespace txuribeltz
                                     logeatuta = true;
                                     string[] parts = line.Split(':');
                                     string userType = parts.Length > 1 ? parts[1] : "user";
-                                    
+
                                     txt_mezuak.Text = "Login arrakastatsua!";
 
                                     // lehio honetatik ez entzun gehiago zerbitzariari
                                     shouldListen = false;
-                                    
+
                                     // Ireki bakoitzaren lehioa
                                     if (userType == "admin")
                                     {
@@ -85,7 +77,7 @@ namespace txuribeltz
                                         UserWindow userWin = new UserWindow(reader, writer, txtUsuario.Text);
                                         userWin.Show();
                                     }
-                                    
+
                                     this.Close();
                                 }
                                 else if (line.StartsWith("LOGIN_FAIL"))
@@ -143,7 +135,7 @@ namespace txuribeltz
                     if (client?.Connected == true)
                         client.Close();
                 }
-                    
+
             }
             catch (Exception ex)
             {

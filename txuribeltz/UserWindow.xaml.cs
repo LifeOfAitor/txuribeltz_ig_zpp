@@ -2,8 +2,6 @@ using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using System.Windows.Shapes;
-using txuribeltz_server;
 
 namespace txuribeltz
 {
@@ -104,16 +102,16 @@ namespace txuribeltz
             switch (agindua)
             {
                 case "DATA":
-                        Dispatcher.Invoke(() =>
-                        {
-                            txt_username.Text = mezuarenzatiak[1].ToUpper();
-                            lblUsername.Text = mezuarenzatiak[1];
-                            lblElo.Text = mezuarenzatiak[2];
-                            erabiltzaileaElo = mezuarenzatiak[2];
-                            lblIrabazita.Text = mezuarenzatiak[3];
-                            lblGalduta.Text = mezuarenzatiak[4];
-                            lblWinRate.Text = $"{mezuarenzatiak[5]}";
-                        });
+                    Dispatcher.Invoke(() =>
+                    {
+                        txt_username.Text = mezuarenzatiak[1].ToUpper();
+                        lblUsername.Text = mezuarenzatiak[1];
+                        lblElo.Text = mezuarenzatiak[2];
+                        erabiltzaileaElo = mezuarenzatiak[2];
+                        lblIrabazita.Text = mezuarenzatiak[3];
+                        lblGalduta.Text = mezuarenzatiak[4];
+                        lblWinRate.Text = $"{mezuarenzatiak[5]}";
+                    });
                     break;
 
                 case "MATCH_FOUND":
@@ -149,7 +147,7 @@ namespace txuribeltz
                     });
                     break;
 
-                    case "TOP10":
+                case "TOP10":
                     List<string> erabiltzaileak = mezuarenzatiak[1].Split(';').ToList();
                     Dispatcher.Invoke(() =>
                     {
