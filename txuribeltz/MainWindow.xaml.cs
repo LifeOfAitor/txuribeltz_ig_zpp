@@ -16,6 +16,7 @@ namespace txuribeltz
         private bool shouldListen = true;
         private bool logeatuta = false;
         private bool konexioaEginda = false;
+        private readonly ValidationService validationService = new(); // testak egiteko
 
         public LoginWindow()
         {
@@ -157,9 +158,10 @@ namespace txuribeltz
         {
             try
             {
-                if (string.IsNullOrWhiteSpace(txtUsuario.Text) || string.IsNullOrWhiteSpace(txtPassword.Password))
+                var validation = validationService.ValidateLogin(txtUsuario.Text, txtPassword.Password);
+                if (!validation.IsValid)
                 {
-                    txt_erroreak.Text = "Erabiltzaile edo pasahitza hutsik daude.";
+                    txt_erroreak.Text = validation.ErrorMessage;
                     return;
                 }
 

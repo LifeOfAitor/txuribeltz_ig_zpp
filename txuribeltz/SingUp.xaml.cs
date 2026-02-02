@@ -9,6 +9,7 @@ namespace txuribeltz
     public partial class SingUp : Window
     {
         private StreamWriter writer;
+        private readonly ValidationService validationService = new(); // testak egiteko
 
         public SingUp(StreamWriter writer)
         {
@@ -22,14 +23,15 @@ namespace txuribeltz
             try
             {
                 // zerbitzarira konektatu eta erabiltzaile hau sortu
-                if (string.IsNullOrWhiteSpace(txtErabiltzailea.Text) || string.IsNullOrWhiteSpace(txtPasahitza.Password))
+                // Validate using ValidationService
+                var validation = validationService.ValidateSignup(
+                    txtErabiltzailea.Text,
+                    txtPasahitza.Password,
+                    txtPasahitza2.Password);
+
+                if (!validation.IsValid)
                 {
-                    txt_erroreak.Text = "Erabiltzaile edo pasahitza hutsik daude.";
-                    return;
-                }
-                if (txtPasahitza.Password != txtPasahitza2.Password)
-                {
-                    txt_erroreak.Text = "Pasahitzak ez datoz bat.";
+                    txt_erroreak.Text = validation.ErrorMessage;
                     return;
                 }
 
