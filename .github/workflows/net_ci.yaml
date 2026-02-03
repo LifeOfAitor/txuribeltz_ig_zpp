@@ -26,12 +26,5 @@ jobs:
       run: dotnet build txuribeltz/txuribeltz.sln --configuration Release --no-restore
 
     - name: Run tests
-      run: dotnet test txuribeltz/txuribeltz.sln --no-build --verbosity normal --configuration Release --logger "trx;LogFileName=test-results.trx"
+      run: dotnet test txuribeltz/txuribeltz.sln --no-build --verbosity normal --configuration Release
 
-    - name: Publish test results
-      uses: dorny/test-reporter@v1
-      if: always()
-      with:
-        name: Test Results
-        path: '**/test-results.trx'
-        reporter: dotnet-trx
