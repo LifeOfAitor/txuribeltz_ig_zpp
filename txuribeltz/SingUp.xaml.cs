@@ -9,7 +9,7 @@ namespace txuribeltz
     public partial class SingUp : Window
     {
         private StreamWriter writer;
-        private readonly ValidationService validationService = new(); // testak egiteko
+        private readonly Services.ValidationService validationService = new(); // testak egiteko
 
         public SingUp(StreamWriter writer)
         {

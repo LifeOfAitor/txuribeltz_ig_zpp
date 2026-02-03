@@ -1,4 +1,4 @@
-﻿namespace txuribeltz;
+﻿namespace txuribeltz.Services;
 
 public record ValidationResult(bool IsValid, string? ErrorMessage = null);
 

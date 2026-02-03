@@ -1,4 +1,4 @@
-﻿using txuribeltz;
+﻿using txuribeltz.Services;
 using Xunit;
 
 namespace txuribelt_test;

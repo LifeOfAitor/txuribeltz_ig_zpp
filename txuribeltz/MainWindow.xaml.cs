@@ -16,7 +16,7 @@ namespace txuribeltz
         private bool shouldListen = true;
         private bool logeatuta = false;
         private bool konexioaEginda = false;
-        private readonly ValidationService validationService = new(); // testak egiteko
+        private readonly Services.ValidationService validationService = new(); // testak egiteko
 
         public LoginWindow()
         {
