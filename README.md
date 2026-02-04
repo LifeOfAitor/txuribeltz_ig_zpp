@@ -2,6 +2,7 @@
 
 ## Edukiak
 - [Aplikazioaren irudiak](#irudiak)
+- [Dokumentazioa](#dokumentazioa)
 - [Zer da Txuribeltz?](#zer-da-txuribeltz)
 - [Aplikazioaren arkitektura](#aplikazioaren-arkitektura)
 - [Aplikazioaren egitura](#aplikazioaren-egitura)
@@ -18,6 +19,11 @@
 - Egilea: Aitor Gaillard
 - Data: 12/2025 - 02/2026
 ---
+### Dokumentazioa
+
+- [Erabiltzailearen gida](docs/user-guide.md)
+- [Administratzailearen gida](docs/admin-guide.md)
+
 ### Zer da Txuribeltz?
 
 Txuribeltz garatu dudan proiektu bat da non TCP zerbitzari baten bidez (gomuko) 5 fitxa jarraian jartzen datzan joku bat kudeatzen da. Bertan erabiltzaileen artean partidak jokatu daitezke. Proiektuak bi zati ditu, bata TCP zerbitzaria eta bestea TCP bezeroa.
@@ -42,10 +48,10 @@ txuribeltz_ig_zpp
 │   ├── 📄 databaseOperations.cs              # PostgreSQL datu-basearekin lan egiteko operazioak
 │   ├── 📄 Partida.cs                         # Partida bat kudeatzen duen klasea (bi jokalari arteko jokoa)
 │   ├── 📄 BezeroKonektatuaDatuBasean.cs      # Konektatutako bezero baten informazioa gordetzeko klasea
-│   ├──📄 Erabiltzaile.cs                     # Erabiltzaile baten datuak gordetzeko klasea (admin kudeaketarako)
+│   ├── 📄 Erabiltzaile.cs                     # Erabiltzaile baten datuak gordetzeko klasea (admin kudeaketarako)
 │   └──📁 database_txuribeltz/                # Docker konfigurazioa
 │       ├──📄 compose.yaml                    # Docker Compose fitxategia - PostgreSQL datu-basea martxan jartzeko
-│       └── 📄 initdb.sql                     # Datu-basearen hasierako script-a (taulak eta datuak sortzeko)
+│       └──📄 initdb.sql                     # Datu-basearen hasierako script-a (taulak eta datuak sortzeko)
 │
 ├── 📁 txuribeltz/                           # Bezeroaren proiektua (WPF)
 │   ├── 📄 txuribeltz.csproj                 # Bezeroaren konfigurazio fitxategia (.NET 8, WPF Windows App)
