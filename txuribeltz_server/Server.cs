@@ -265,9 +265,6 @@ public class Server
                     {
                         string? irabazlea = mezuarenzatiak[1];
                         partida.AmaituPartida(irabazlea);
-                        // bidali irabazleari mezua eta kendu partida
-
-                        KenduPartida(partida.PartidaID);
                         //Console.WriteLine($"DEBUG: partida bukatuta eta ezabatuta");
                     }
                 }
@@ -282,7 +279,6 @@ public class Server
                         // Utzi = galdu
                         string? irabazlea = partida.LortuAurkalaria(logeatutakoBezeroa.Erabiltzailea);
                         partida.AmaituPartida(irabazlea);
-                        KenduPartida(partida.PartidaID);
                         //Console.WriteLine($"DEBUG: {logeatutakoBezeroa.Erabiltzailea} partida utzi du");
                     }
                 }
@@ -301,7 +297,6 @@ public class Server
 
     private static void startMatchKudeatu(BezeroKonektatuaDatuBasean logeatutakoBezeroa, string[] mezuarenzatiak, StreamWriter writer)
     {
-        //Console.WriteLine($"DEBUG: START_MATCH jaso - mezuarenzatiak.Length: {mezuarenzatiak.Length}");
         if (logeatutakoBezeroa != null && mezuarenzatiak.Length >= 2)
         {
             string oponentea = mezuarenzatiak[1];
@@ -309,45 +304,35 @@ public class Server
 
             if (aurkalaria != null)
             {
-                // Sortu PartidaId name1_name2 eran (alfabetikoki ordenatuta)
                 var izenak = new[] { logeatutakoBezeroa.Erabiltzailea, oponentea };
                 Array.Sort(izenak);
                 string partidaID = $"{izenak[0]}_{izenak[1]}";
 
                 lock (lockObject)
                 {
-                    // Egiaztatu partida ez dagoela jadanik
                     if (partidaAktiboak.ContainsKey(partidaID))
                     {
-                        //Console.WriteLine($"DEBUG: Partida {partidaID} dagoeneko existitzen da");
+                        Console.WriteLine($"ERROR: Partida {partidaID} dagoeneko existitzen da");
                         writer.WriteLine("ERROR:Partida dagoeneko hasita dago");
                         return;
                     }
 
-                    // Sortu partida berria
-                    var partida = new Partida(partidaID, logeatutakoBezeroa, aurkalaria);
+                    // NEW: Pass cleanup callback
+                    var partida = new Partida(partidaID, logeatutakoBezeroa, aurkalaria, KenduPartida);
                     partidaAktiboak[partidaID] = partida;
 
-                    // Gorde PartidaID bi bezeroetan
                     logeatutakoBezeroa.PartidaID = partidaID;
                     aurkalaria.PartidaID = partidaID;
 
-                    Console.WriteLine($"PARTIDA SORTU DA -> Partida id:{partidaID} -> {logeatutakoBezeroa} eta {aurkalaria}");
+                    Console.WriteLine($"PARTIDA SORTU DA -> Partida id:{partidaID} -> {logeatutakoBezeroa.Erabiltzailea} eta {aurkalaria.Erabiltzailea}");
                 }
 
-                // Bidali biei partida hasi dela
                 partidaAktiboak[partidaID].BidaliBieiei($"MATCH_STARTED:{partidaID}");
-                //Console.WriteLine($"DEBUG: MATCH_STARTED bidalita bieei - {partidaID}");
             }
             else
             {
-                //Console.WriteLine($"DEBUG: ERROREA - Aurkalaria {oponentea} ez da aurkitu zerbitzarian");
                 writer.WriteLine("ERROR:Aurkalaria ez da aurkitu");
             }
-        }
-        else
-        {
-            Console.WriteLine($"DEBUG: START_MATCH - parametro falta edo bezeroa null");
         }
     }
 
@@ -587,11 +572,21 @@ public class Server
     // Partida bukatu denean kendu partidaAktiboak diktionarioatik
     private static void KenduPartida(string partidaId)
     {
+        Console.WriteLine("DEBUG: KenduPartida deitu da: " + partidaId);
         lock (lockObject)
         {
-            if (partidaAktiboak.Remove(partidaId))
+            if (partidaAktiboak.TryGetValue(partidaId, out var partida))
             {
+                // Clear PartidaID from both players BEFORE removing from dictionary
+                partida.Jokalari1.PartidaID = null;
+                partida.Jokalari2.PartidaID = null;
+                
+                partidaAktiboak.Remove(partidaId);
                 Console.WriteLine($"DEBUG: Partida kenduta: {partidaId}");
+            }
+            else
+            {
+                Console.WriteLine($"WARNING: Partida {partidaId} ez da aurkitu kentzeko");
             }
         }
     }

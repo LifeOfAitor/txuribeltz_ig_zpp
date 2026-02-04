@@ -17,8 +17,9 @@ public class Partida
     // Jokalari2-ek jarritako pieza: "W" (White)
     // ORDUAN: TAULA[lerroa, zutabea] = "B" edo "W" edo string.Empty/null
     public string TxandakoJokalaria { get; set; } //Nori tokatzen zaio jolastea (txandak)
+    private readonly Action<string> onMatchEnd; // Partida amaitzean deitu beharreko ekintza
 
-    public Partida(string partidaID, BezeroKonektatuaDatuBasean jokalari1, BezeroKonektatuaDatuBasean jokalari2)
+    public Partida(string partidaID, BezeroKonektatuaDatuBasean jokalari1, BezeroKonektatuaDatuBasean jokalari2, Action<string> onMatchEnd)
     {
         PartidaID = partidaID;
         Jokalari1 = jokalari1;
@@ -29,6 +30,7 @@ public class Partida
         TxatMezuak = new List<string>();
         Taula = new string[15, 15]; //15x15 taula hasieratzea
         TxandakoJokalaria = Jokalari1.Erabiltzailea; //Jokalari1-ek hasiko du bera izan delako partida bilatu duen lehenendoa
+        this.onMatchEnd = onMatchEnd;
 
         //Console.WriteLine($"DEBUG: Partida objetua sortu da errorerik gabe: {PartidaID} ({jokalari1.Erabiltzailea} vs {jokalari2.Erabiltzailea})");
     }
@@ -288,6 +290,8 @@ public class Partida
     // Partida amaitzeko metodoa, irabazlea eta galtzailea jasotzen ditu eta bakoitzari bidaltzen dio dagokion mezua, bertatik kudeatzeko
     public void AmaituPartida(string? irabazlea)
     {
+        if (Amaituta) return; // Prevent double cleanup
+
         Amaituta = true;
         Irabazlea = irabazlea;
         Galtzailea = LortuAurkalaria(irabazlea);
@@ -299,5 +303,8 @@ public class Partida
 
         // emaitza datubasean gorde
         databaseOperations.partidaGorde(Jokalari1.Erabiltzailea, Jokalari2.Erabiltzailea, Irabazlea, Galtzailea);
+
+        // Zerbitzariari esan partida amaitu dela, horrela zerbitzariak Partida objektua garbitu eta baliabideak askatu ahal izango ditu
+        onMatchEnd?.Invoke(PartidaID);
     }
 }
