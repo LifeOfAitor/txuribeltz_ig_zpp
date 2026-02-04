@@ -27,10 +27,12 @@ namespace txuribeltz_server
             {
                 //sortzen du datu basera iristeko beharrezkoa den dataSource-a (ate bat bezala)
                 dataSource = NpgsqlDataSource.Create(connectionString);
+                Console.WriteLine("Datu basearekin konektatzen...");
+                await using var conn = await dataSource.OpenConnectionAsync(); // datu basera konektatzen da
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Errorea datu basera konektatzerakoan: {ex.Message}");
+                Console.WriteLine($"Errorea datu basera konektatzerakoan: {ex.Message} --- DOCKER MARTXAN DAGO?");
             }
         }
 

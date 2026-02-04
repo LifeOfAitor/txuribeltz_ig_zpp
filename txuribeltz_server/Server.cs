@@ -21,32 +21,33 @@ public class Server
     private static readonly Dictionary<string, Partida> partidaAktiboak = new();
 
     // zerbitzariaren IP helbidea lortzeko metodoa 100% IA egina
-    static string GetLocalIPAddress()
+    static void GetLocalIPAddress()
     {
+        Console.WriteLine("\n=== Eskuragarri dauden IP helbideak ===");
+
         foreach (var ni in NetworkInterface.GetAllNetworkInterfaces())
         {
             if (ni.OperationalStatus != OperationalStatus.Up)
                 continue;
-
             foreach (var ip in ni.GetIPProperties().UnicastAddresses)
             {
                 if (ip.Address.AddressFamily == AddressFamily.InterNetwork &&
                     !IPAddress.IsLoopback(ip.Address))
                 {
-                    return ip.Address.ToString();
+                    Console.WriteLine($"  -> IP: {ip.Address}");
                 }
             }
         }
-
-        throw new Exception("Ez da aurkitu IP-a konpotik konektatzeko");
+        Console.WriteLine("=====================================\n");
     }
 
     // Zerbitzariaren metodo nagusia, zerbitzaria hasi eta bezeroak onartzen eta kudeatzen dituena
     public static async Task Main(string[] args)
     {
+        // IPak lortu eta erakutsi, horrela ez da egin behar 'ipconfig' komandoa
+        GetLocalIPAddress();
         // Zerbitzariaren datuak
         string servidor = "127.0.0.1";
-        string servidorV2 = GetLocalIPAddress();
         IPAddress ipserver = IPAddress.Parse(servidor);
         int port = 13000;
 
@@ -58,7 +59,6 @@ public class Server
         //Console.WriteLine("Zerbitzaria martxan dago {0}:{1}", servidor, port);
         Console.WriteLine($"Zerbitzaria martxan dago {port} portuan");
         Console.WriteLine($"Bezeroa ordenagailu honetan badago konektatu IP helbide honekin:              {servidor}");
-        Console.WriteLine($"Bezeroa sareko beste ordenagailu batean badago konektatu IP helbide honekin:  {servidorV2}");
         listener.Start();
 
         // Database konexioa sortu, lortzen duenean aurrera jarraituko du

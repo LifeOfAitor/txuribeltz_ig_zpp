@@ -176,7 +176,7 @@ namespace txuribeltz
             }
             catch (Exception ex)
             {
-                txt_erroreak.Text = $"Errorea login egitean: {ex.Message}, ez badaukazu, sortu erabiltzaile bat";
+                txt_erroreak.Text = $"Errorea login egitean, seguruenik zerbitzariaren arazoa da.";
                 txtUsuario.Clear();
                 txtPassword.Clear();
             }
