@@ -23,6 +23,7 @@
 
 - [Erabiltzailearen gida](docs/user-guide.md)
 - [Administratzailearen gida](docs/admin-guide.md)
+ç-[Gida teknikoa](docs/technical_guide.md)
 
 ### Zer da Txuribeltz?
 
