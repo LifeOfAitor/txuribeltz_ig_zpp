@@ -1,5 +1,9 @@
 # TXURIBELTZ
 
+- Bertsioa: V1
+- Egilea: Aitor Gaillard
+- Data: 12/2025 - 02/2026
+---
 ## Edukiak
 - [Aplikazioaren irudiak](#irudiak)
 - [Dokumentazioa](#dokumentazioa)
@@ -15,10 +19,16 @@
 
 # Irudiak
 
-- Bertsioa: V1
-- Egilea: Aitor Gaillard
-- Data: 12/2025 - 02/2026
----
+## Bezeroa
+<img src="docs/images/user_login.png">
+<img src="docs/images/user_window.png">
+<img src="docs/images/user_queue.png">
+<img src="docs/images/user_match.png">
+
+## Admin
+<img src="docs/images/admin_erabiltzaileak.png">
+<img src="docs/images/admin_estatistikak.png">
+
 ### Dokumentazioa
 
 - [Erabiltzailearen gida](docs/user-guide.md)

@@ -26,7 +26,7 @@ Datu basearekin konektatzen...
 
 - Data-tartearen arabera estatistikak filtratu daitezke.
 - Emaitzak ikus daitezke eta PDF gisa esportatu.
-<img src="images/admin_erabiltzaileak.png">
+<img src="images/admin_estatistikak.png">
 
 ## PDF esportazioa
 
