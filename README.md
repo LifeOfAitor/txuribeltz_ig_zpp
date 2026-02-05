@@ -156,10 +156,29 @@ Partida bat bilatzen ari diren erabiltzaileak kudeatzeko taula.
 Aplikazioa datu basea dockerizatuta daukanez,  [Docker desktop](https://www.docker.com/products/docker-desktop/) instalatuta egon behar da. Behin docker compose fitxategiko direktorioan gaudela, terminala ireki eta hurrengo komandoa exekutatu:
 
 ```bash
+cd database_txuribeltz
 docker compose up -d
 ```
 Honek egingo du:
 - postgressql datu basea altxatu 5433 portuan
 - adminer altxatu 8081 portuan (datu basera interfaze batekin sartzeko).
 
+- [Informazio gehiago behar baduzu irakurri administratzailearen gida](docs/admin-guide.md)
+
+### Honelakoa izango da karpetaren egitura
+
+```
+📁 Txuribeltz_v1
+│
+├───📁 app/
+│   ├── 📄 Server.exe          # Zerbitzariaren exekutablea
+│   ├── 📄 Client.exe          # Bezeroaren exekutablea
+│   └── 📄 ...
+├───📁 database_txuribeltz/    # Datu basearako beharrezkoak          
+│   ├──📄 compose.yaml         # Compose fitxategia          
+│   └──📄 initdb.sql           # Datu basea taulekin eta datu fiktizioekin betetzeko script-a
+└───📄 README.md               # Githubeko url non informazio guztia gordeta dagoen irakurri ahal izateko
+```
+
 Docker martxan daukagula aplikazioa martxan jarri dezakegu. Lehenengo zerbitzaria martxan jarriko da **Server.exe**. Ondoren zerbitzaria martxan dagoenean, bezeroak ireki daitezke **Client.exe** exekutagarriarekin.
+Zerbitzaria erakutsiko du bere logean erabili daitezkeen IP helbideak. Ideia da sare berdinean funtzionatzea, adibidez, ez du funtzionatuko WSL edo Dockerren IP-ak jarriz. IP-ak probatu beharko dira zerbitzarira konektatu arte. Bezeroa zerbitzariaren makina berdinean irekitzen bada, 'localhost' sartuz nahikoa izango da konektatu ahal izateko.
