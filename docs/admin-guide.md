@@ -20,7 +20,7 @@ grafiko sinple bat.
 
 ### Docker compose fitxategia
 
-´´´ yaml
+``` yaml
 services:
 
   db:
@@ -45,7 +45,7 @@ services:
     #restart: always
     ports:
       - 8081:8080
-´´´
+```
 
 ## Administratzailearen sarrera
 - Zerbitzaria martxan jarri martxan ez badago **Server.exe** fitxategia martxan jarriz.
@@ -55,6 +55,11 @@ Bezeroa ordenagailu honetan badago konektatu IP helbide honekin:              12
 Datu basearekin konektatzen...
 ```
 - **Client.exe** fitxategia ireki eta Admin kontuarekin hasi saioa.
+```
+admin erabiltzailea -> admin
+admin pasahitza -> admin
+```
+
 <img src="images/admin_login.png">
 
 ## Erabiltzaileak kudeatu
