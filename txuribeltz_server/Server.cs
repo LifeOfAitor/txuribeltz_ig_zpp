@@ -306,10 +306,12 @@ public class Server
             {
                 var izenak = new[] { logeatutakoBezeroa.Erabiltzailea, oponentea };
                 Array.Sort(izenak);
+                // Sortu PartidaId name1_name2 eran (alfabetikoki ordenatuta)
                 string partidaID = $"{izenak[0]}_{izenak[1]}";
 
                 lock (lockObject)
                 {
+                    // Egiaztatu partida ez dela existitzen jadanik
                     if (partidaAktiboak.ContainsKey(partidaID))
                     {
                         Console.WriteLine($"ERROR: Partida {partidaID} dagoeneko existitzen da");
@@ -317,10 +319,11 @@ public class Server
                         return;
                     }
 
-                    // NEW: Pass cleanup callback
+                    // pasa partidaID, jokalariak eta KenduPartida callback-a partida objektuari, partida objektuak kudeatuko du partida bukatzean KenduPartida deituz partidaAktiboak-en kendu dadin
                     var partida = new Partida(partidaID, logeatutakoBezeroa, aurkalaria, KenduPartida);
                     partidaAktiboak[partidaID] = partida;
 
+                    // Gorde PartidaID bi bezeroetan
                     logeatutakoBezeroa.PartidaID = partidaID;
                     aurkalaria.PartidaID = partidaID;
 
