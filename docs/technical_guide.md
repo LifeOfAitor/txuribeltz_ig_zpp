@@ -113,7 +113,45 @@ ALTER TABLE partidak
   - `MOVE:jokalaria:row,col:pieza`
   - `CHAT:bidaltzailea:mezua`
 
-**Kodea**: `Server.cs` → `Main()`, `ErabiltzaileaKudeatuAsync()`
+**Nola funtzionatzen du?**
+
+Bai bezeroa eta bai zerbitzaria mezuak entzuten egongo dira denbora guztian eta mezuaren aginduaren arabera gauza ezberdinak egingo ditu adibideetan bezala. Adibidez `hasiMezuakEntzuten()` bezalako bukle bat martxan jartzen da lehenengo eta mezua iristen den bakoitzean `prozesatuMezua()` deitzen da.
+
+Bertan agindua eta mezua banantzen dira eta aginduaren arabera ekintza ezberdinak gertatuko dira.
+
+```c#
+string[] mezuarenzatiak = mezua.Split(':');
+string agindua = mezuarenzatiak[0];
+```
+
+Horrelako funtzionamendua du, hau `Server.cs` klasean erabiltzen den kodigo zatitxo bat da:
+
+```c#
+switch (agindua)
+{
+    case "LOGIN" when mezuarenzatiak.Length == 3:
+        return await LoginKudeatu(mezuarenzatiak, writer, reader, socketCliente);
+
+    case "SIGNUP" when mezuarenzatiak.Length == 3:
+        await SignupKudeatu(mezuarenzatiak, writer);
+        break;
+
+    case "GET_USERS" when logeatutakoBezeroa?.Mota == "admin":
+        GetUsersKudeatu(logeatutakoBezeroa, writer);
+        break;
+
+    case "DELETE" when mezuarenzatiak.Length > 1:
+        databaseOperations.ezabatuErabiltzailea(mezuarenzatiak[1]);
+        break;
+
+    case "CHANGE_P" when mezuarenzatiak.Length >= 3:
+        databaseOperations.aldatuPasahitza(mezuarenzatiak[1], mezuarenzatiak[2]);
+        break;
+
+    case "USERDATA":
+        userdataKudeatu(logeatutakoBezeroa, mezuarenzatiak, writer);
+        break;
+```
 
 ---
 
@@ -193,10 +231,10 @@ ALTER TABLE partidak
 
 ## Metodoak / Funtzio Garrantzitsuak Dokumentatzea
 
-### Metodo: `Server.Main()`
+### Metodoa: `Server.Main()`
 **Klasea**: `Server.cs`
 
-**Deskribapena**: Zerbitzariaren sarrera-puntua. TCP listener-a abiarazten du, datu-basera konektatzen da eta bezero-konexioak onartzen ditu bukle infinitu batean.
+**Deskribapena**: Zerbitzariaren sarrera-puntua. TCP listener-a abiarazten du, datu-basera konektatzen da eta bezero-konexioak onartzen ditu eta kudeatzen ditu bukle infinitu batean.
 
 **Parametroak**:
 ```bash
@@ -208,11 +246,6 @@ ALTER TABLE partidak
 
 **Salbuespenak**: `Exception` (konexio-erroreak)
 
-**Erabilera-adibidea**:
-```csharp
-await Server.Main(args);
-```
-
 **Fluxua**:
 1. TCP listener sortu `IPAddress.Any:13000`-n
 2. Datu-basera konektatu
@@ -220,8 +253,56 @@ await Server.Main(args);
 4. Bezero bakoitzeko hari bat abiarazi (`ErabiltzaileaKudeatuAsync`)
 
 ---
+### Metodoa: `Server.ErabiltzaileaKudeatuAsync()`
+**Klasea**: `Server.cs`
 
-### Metodo: `databaseOperations.checkErabiltzaileak()`
+**Deskribapena**: Zerbitzarira konektatzen denean erabiltzaile bat deitzen da eta bezeroak bidaltzen dituen eginduak kudeatzen ditu.
+
+**Parametroak**:
+```bash
+| Parametroa          | Mota       | Deskribapena                     |
+|---------------------|------------|----------------------------------|
+| `socketCliente`     | `TcpClent` | bezeroaren TCP socket-a          |
+```
+**Itzulera-balioa**: `Task`
+
+**Salbuespenak**: `Exception` (konexio-erroreak) `Finally` (bezeroa deskonektatu)
+
+**Fluxua**:
+1. StreamReader, StreamWriter eta bezero objetua sortzen ditu.
+2. Bezeroaren mezua entzuten du eta kudeatzen du `ProzesatuAgindua` metodoarekin,
+mezua komandoak izango dira adibidez:
+```
+"LOGIN:erabiltzailea:pasahitza"
+```
+---
+
+### Metodoa: `Server.ProzesatuAgindua()`
+**Klasea**: `Server.cs`
+
+**Deskribapena**: Zerbitzarira iristen diren mezuak kudeatzen ditu switch-case batekin.
+
+**Parametroak**:
+```bash
+string agindua                                 # zerbitzarira iritsi den agindua
+string[] mezuarenzatiak,                       # iritsitako mezuaren gorputza
+StreamWriter writer,                           # Bezeroaren writer
+StreamReader reader,                           # Bezeroaren reader
+TcpClient socketCliente,                       # Bezeroaren socket-a
+BezeroKonektatuaDatuBasean? logeatutakoBezeroa # Bezeroa logeatzen bada bezero objetuan gordeko da
+```
+**Itzulera-balioa**: `Task<BezeroKonektatuaDatuBasean>`: 
+Bezeroaren komandoa asinkronoki prozesatzen du eta saioaren egoera (logeatutako bezeroa) eguneratzen du; 
+`await` erabilita haria blokeatu gabe itxaroten da emaitza lortu arte.
+Bezeroaren informazioa beteko da behin logeatzen garenean.
+
+
+**Fluxua**:
+1. Aginduaren arabera `case` egokia hautatu
+2. Egindakoarekin bezero objetua eguneratzen da, adibidez logeatzerakoan bezero objetuko datuak beteko dira bezero horren informazioarekin. 
+---
+
+### Metodoa: `databaseOperations.checkErabiltzaileak()`
 **Klasea**: `databaseOperations.cs`
 
 **Deskribapena**: Erabiltzaile bat eta pasahitza datu-basean existitzen diren egiaztatzen du.
@@ -555,4 +636,5 @@ Dokumentu honek Txuribeltz proiektuaren funtzionaltasun teknikoak, metodoak eta 
 
 **Bertsio**: 1.0  
 **Data**: 2025-06-15  
+
 **Egilea**: Aitor Gaillard
