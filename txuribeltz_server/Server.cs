@@ -63,6 +63,7 @@ public class Server
 
         // Database konexioa sortu, lortzen duenean aurrera jarraituko du
         await databaseOperations.ConnectDatabaseAsync();
+        await databaseOperations.MigratePasswordsToHashAsync(); // initdb.sql skripteko pasahitzak hasheatu, horrela ez dira pasahitzak testu argian gordeko datu basean
 
         try
         {

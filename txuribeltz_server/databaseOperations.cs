@@ -29,6 +29,7 @@ namespace txuribeltz_server
                 dataSource = NpgsqlDataSource.Create(connectionString);
                 Console.WriteLine("Datu basearekin konektatzen...");
                 await using var conn = await dataSource.OpenConnectionAsync(); // datu basera konektatzen da
+                Console.WriteLine("Datu basera konektatuta!");
             }
             catch (Exception ex)
             {
@@ -46,23 +47,27 @@ namespace txuribeltz_server
                 return false;
             }
 
-            const string query = "SELECT COUNT(*) FROM erabiltzaileak WHERE TRIM(username) = @erabiltzaile AND TRIM(password) = @pasahitza;";
+            const string query = "SELECT password FROM erabiltzaileak WHERE TRIM(username) = @erabiltzaile;";
 
             try
             {
                 await using var conn = await dataSource.OpenConnectionAsync(); // datu basera konektatzen da
                 await using var cmd = new NpgsqlCommand(query, conn);
                 cmd.Parameters.AddWithValue("@erabiltzaile", erabiltzaile);
-                cmd.Parameters.AddWithValue("@pasahitza", pasahitza);
 
                 var result = await cmd.ExecuteScalarAsync();
-                long count = result != null ? Convert.ToInt64(result) : 0;
 
-                return count > 0;
+                if (result == null || result == DBNull.Value)
+                    return false;
+
+                string storedHash = result.ToString()!;
+
+                // BCrypt erabiliz egiaztatu pasahitza, datu basetik atera den hash-arekin konparatuz
+                return PasahitzaHashHelper.VerifyPassword(pasahitza, storedHash);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Errorea eabiltzailea bilatzen: {ex.Message}");
+                Console.WriteLine($"Errorea erabiltzailea bilatzen: {ex.Message}");
                 return false;
             }
         }
@@ -103,13 +108,16 @@ namespace txuribeltz_server
                 Console.WriteLine("Ez dago konexiorik sortuta");
                 return;
             }
+            // Pasahitza hasheatu gorde aurretik
+            string hashedPassword = PasahitzaHashHelper.HashPassword(pasahitza);
+
             const string query = "INSERT INTO erabiltzaileak (username, password, mota) VALUES (@izena, @pasahitza, 'user');";
             try
             {
                 using var conn = dataSource.OpenConnection(); // datu basera konektatzen da
                 using var cmd = new NpgsqlCommand(query, conn);
                 cmd.Parameters.AddWithValue("@izena", izena);
-                cmd.Parameters.AddWithValue("@pasahitza", pasahitza);
+                cmd.Parameters.AddWithValue("@pasahitza", hashedPassword); // Hasheatutako pasahitza
                 cmd.ExecuteNonQuery();
             }
             catch (Exception ex)
@@ -149,13 +157,16 @@ namespace txuribeltz_server
                 Console.WriteLine("Ez dago konexiorik sortuta");
                 return;
             }
+            // Pasahitz berria hash-atu
+            string hashedPassword = PasahitzaHashHelper.HashPassword(pasahitzaBerria);
+
             const string query = "UPDATE erabiltzaileak SET password = @pasahitzaBerria WHERE TRIM(username) = @izena;";
             try
             {
                 using var conn = dataSource.OpenConnection(); // datu basera konektatzen da
                 using var cmd = new NpgsqlCommand(query, conn);
                 cmd.Parameters.AddWithValue("@izena", izena);
-                cmd.Parameters.AddWithValue("@pasahitzaBerria", pasahitzaBerria);
+                cmd.Parameters.AddWithValue("@pasahitzaBerria", hashedPassword); // Hash gordetzea
                 cmd.ExecuteNonQuery();
                 Console.WriteLine($"{izena} erabiltzailearen pasahitza ondo aldatu da.");
             }
@@ -401,6 +412,56 @@ namespace txuribeltz_server
                 Console.WriteLine($"Errorea partida kopurua lortzerakoan: {ex.Message}");
             }
             return partidaKopurua + "";
+        }
+
+        // Metodo berria, datu basean sortzen diren erabiltzaileen pasahitzak hash-atzeko (skriparen bidez, initdb.sql) 
+        public static async Task MigratePasswordsToHashAsync()
+        {
+            if (dataSource == null) return;
+
+            const string selectQuery = "SELECT id, password FROM erabiltzaileak;";
+            const string updateQuery = "UPDATE erabiltzaileak SET password = @hash WHERE id = @id;";
+
+            try
+            {
+                await using var conn = await dataSource.OpenConnectionAsync();
+
+                // Lortu erabiltzaile guztiak
+                var usersToMigrate = new List<(long id, string password)>();
+                await using (var cmd = new NpgsqlCommand(selectQuery, conn))
+                await using (var reader = await cmd.ExecuteReaderAsync())
+                {
+                    while (await reader.ReadAsync())
+                    {
+                        long id = reader.GetInt64(0);
+                        string pwd = reader.GetString(1).Trim();
+
+                        // BCrypt hash-ak "$2" -rekin hasten dira, beraz plain-text badira migratu
+                        if (!pwd.StartsWith("$2"))
+                        {
+                            usersToMigrate.Add((id, pwd));
+                        }
+                    }
+                }
+
+                // Hash-atu eta eguneratu
+                foreach (var (id, plainPassword) in usersToMigrate)
+                {
+                    string hashed = PasahitzaHashHelper.HashPassword(plainPassword);
+                    await using var updateCmd = new NpgsqlCommand(updateQuery, conn);
+                    updateCmd.Parameters.AddWithValue("@hash", hashed);
+                    updateCmd.Parameters.AddWithValue("@id", id);
+                    await updateCmd.ExecuteNonQueryAsync();
+                    // Console.WriteLine($"Pasahitza migratuta erabiltzaile ID: {id}");
+                }
+
+                if (usersToMigrate.Count > 0)
+                    Console.WriteLine($"MIGRAZIOA BUKATUTA: {usersToMigrate.Count} pasahitz hash-atu dira.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Errorea pasahitzak migratzerakoan: {ex.Message}");
+            }
         }
     }
 }

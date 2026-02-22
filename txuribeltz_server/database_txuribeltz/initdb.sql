@@ -33,21 +33,21 @@ INSERT INTO erabiltzaileak (username, password, mota)
 VALUES ('user', 'user', 'user');
 
 INSERT INTO erabiltzaileak (username, password, mota, elo) VALUES
-('alice', 'alice123', 'user', 1200),
-('bob', 'bob123', 'user', 1100),
-('carol', 'carol123', 'user', 1050),
-('dave', 'dave123', 'user', 1300),
-('eve', 'eve123', 'user', 1250),
-('frank', 'frank123', 'user', 1000),
-('grace', 'grace123', 'user', 1150),
-('heidi', 'heidi123', 'user', 1080),
-('ivan', 'ivan123', 'user', 1020),
-('judy', 'judy123', 'user', 1180),
-('mallory', 'mallory123', 'user', 1350),
-('oscar', 'oscar123', 'user', 980),
-('peggy', 'peggy123', 'user', 1120),
-('trent', 'trent123', 'user', 1400),
-('victor', 'victor123', 'user', 1070);
+('aitor', 'aitor123', 'user', 1200),
+('ikerg', 'ikerG123', 'user', 1100),
+('unai', 'unai123', 'user', 1000),
+('jaime', 'jaime123', 'user', 1300),
+('danel', 'danel123', 'user', 1200),
+('julen', 'julen123', 'user', 1000),
+('xabier', 'xabier123', 'user', 1100),
+('ibai', 'ibai123', 'user', 1200),
+('ivan', 'ivan123', 'user', 1000),
+('iker', 'iker123', 'user', 1100),
+('bittor', 'bittor123', 'user', 1400),
+('mikel', 'mikel123', 'user', 1000),
+('jon', 'jon123', 'user', 800),
+('aritz', 'aritz123', 'user', 1400),
+('extra', 'extra123', 'user', 500);
 
 INSERT INTO partidak (player1_id, player2_id, winner_id, played_at) VALUES
 (3, 4, 3, current_date - 3),
