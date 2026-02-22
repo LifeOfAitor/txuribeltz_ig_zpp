@@ -357,7 +357,7 @@ namespace txuribeltz
                     MessageBox.Show("Hasierako data ezin da amaierako data baina beranduagoa izan.");
                     return;
                 }
-                MessageBox.Show($"Data hasiera: {datahasiera}\nData amaiera: {dataamaiera}");
+                //MessageBox.Show($"Data hasiera: {datahasiera}\nData amaiera: {dataamaiera}");
                 // zerbitzariari data estatistikak eskatzea
                 // Datubaseko data formatua "2026-01-16" izango da
                 writer.WriteLine($"GET_DATA_STATS:{datahasiera}:{dataamaiera}");

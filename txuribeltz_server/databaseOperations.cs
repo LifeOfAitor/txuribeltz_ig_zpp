@@ -443,7 +443,7 @@ namespace txuribeltz_server
                         }
                     }
                 }
-
+                Console.WriteLine("Pasahitzak hasheatzen...");
                 // Hash-atu eta eguneratu
                 foreach (var (id, plainPassword) in usersToMigrate)
                 {
@@ -452,11 +452,15 @@ namespace txuribeltz_server
                     updateCmd.Parameters.AddWithValue("@hash", hashed);
                     updateCmd.Parameters.AddWithValue("@id", id);
                     await updateCmd.ExecuteNonQueryAsync();
-                    // Console.WriteLine($"Pasahitza migratuta erabiltzaile ID: {id}");
                 }
 
                 if (usersToMigrate.Count > 0)
-                    Console.WriteLine($"MIGRAZIOA BUKATUTA: {usersToMigrate.Count} pasahitz hash-atu dira.");
+                    Console.WriteLine($"MIGRAZIOA BUKATUTA: {usersToMigrate.Count} pasahitz hasheatu dira.");
+                else
+                {
+                    Console.WriteLine("MIGRAZIOA BUKATUTA: Ez da pasahitzik hasheatu behar izan.");
+                }
+
             }
             catch (Exception ex)
             {

@@ -38,7 +38,7 @@ public class Server
                 }
             }
         }
-        Console.WriteLine("=====================================\n");
+        Console.WriteLine("=============================================================================================");
     }
 
     // Zerbitzariaren metodo nagusia, zerbitzaria hasi eta bezeroak onartzen eta kudeatzen dituena
@@ -59,11 +59,17 @@ public class Server
         //Console.WriteLine("Zerbitzaria martxan dago {0}:{1}", servidor, port);
         Console.WriteLine($"Zerbitzaria martxan dago {port} portuan");
         Console.WriteLine($"Bezeroa ordenagailu honetan badago konektatu IP helbide honekin:              {servidor}");
+        Console.WriteLine("=============================================================================================");
         listener.Start();
 
         // Database konexioa sortu, lortzen duenean aurrera jarraituko du
         await databaseOperations.ConnectDatabaseAsync();
+        Console.WriteLine("=============================================================================================");
         await databaseOperations.MigratePasswordsToHashAsync(); // initdb.sql skripteko pasahitzak hasheatu, horrela ez dira pasahitzak testu argian gordeko datu basean
+
+        Console.WriteLine("=============================================================================================");
+        Console.WriteLine("BEZEROAK ONARTZEKO PREST");
+        Console.WriteLine("=============================================================================================");
 
         try
         {
