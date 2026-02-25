@@ -49,10 +49,25 @@ services:
 
 ## Administratzailearen sarrera
 - Zerbitzaria martxan jarri martxan ez badago **Server.exe** fitxategia martxan jarriz.
+- Zerbitzaria lehenengo aldian irekitzen denean, datu baseko pasahitz guztiak hasheatuko ditu.
 ```bash
+=== Eskuragarri dauden IP helbideak ===
+  -> IP: 192.168.1.2
+=============================================================================================
 Zerbitzaria martxan dago 13000 portuan
 Bezeroa ordenagailu honetan badago konektatu IP helbide honekin:              127.0.0.1
+=============================================================================================
 Datu basearekin konektatzen...
+Datu basera konektatuta!
+=============================================================================================
+Pasahitzak hasheatzen...
+MIGRAZIOA BUKATUTA: 17 pasahitz hasheatu dira.
+=============================================================================================
+BEZEROAK ONARTZEKO PREST
+=============================================================================================
+...
+...
+...
 ```
 - **Client.exe** fitxategia ireki eta Admin kontuarekin hasi saioa.
 ```
@@ -67,7 +82,7 @@ admin pasahitza -> admin
 1. Admin leihoan, erabiltzaile-zerrenda ireki.
 2. Erabiltzaile berria sortu edo existitzen dena ezabatu.
 3. Pasahitza aldatu behar bada, dagokion aukera hautatu.
-<img src="images/admin_erabiltzaileak.png">
+<img src="images/admin_erabiltzaileak_1.1.png">
 
 
 ## Estatistikak ikusi

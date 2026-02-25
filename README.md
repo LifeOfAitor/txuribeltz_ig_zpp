@@ -1,6 +1,6 @@
 # TXURIBELTZ
 
-- Bertsioa: V1
+- Bertsioa: v1.1
 - Egilea: Aitor Gaillard
 - Data: 12/2025 - 02/2026
 ---
@@ -26,7 +26,7 @@
 <img src="docs/images/user_match.png">
 
 ## Admin
-<img src="docs/images/admin_erabiltzaileak.png">
+<img src="docs/images/admin_erabiltzaileak_1.1.png">
 <img src="docs/images/admin_estatistikak.png">
 
 ### Dokumentazioa
@@ -59,41 +59,42 @@ txuribeltz_ig_zpp
 │   ├── 📄 databaseOperations.cs              # PostgreSQL datu-basearekin lan egiteko operazioak
 │   ├── 📄 Partida.cs                         # Partida bat kudeatzen duen klasea (bi jokalari arteko jokoa)
 │   ├── 📄 BezeroKonektatuaDatuBasean.cs      # Konektatutako bezero baten informazioa gordetzeko klasea
-│   ├── 📄 Erabiltzaile.cs                     # Erabiltzaile baten datuak gordetzeko klasea (admin kudeaketarako)
+│   ├── 📄 Erabiltzaile.cs                    # Erabiltzaile baten datuak gordetzeko klasea (admin kudeaketarako)
+│   ├── 📄 PasahitzaHashHelper.cs             # Pasahitzak hasheatzeko erabiltzen den klasea
 │   └──📁 database_txuribeltz/                # Docker konfigurazioa
 │       ├──📄 compose.yaml                    # Docker Compose fitxategia - PostgreSQL datu-basea martxan jartzeko
-│       └──📄 initdb.sql                     # Datu-basearen hasierako script-a (taulak eta datuak sortzeko)
+│       └──📄 initdb.sql                      # Datu-basearen hasierako script-a (taulak eta datuak sortzeko)
 │
-├── 📁 txuribeltz/                           # Bezeroaren proiektua (WPF)
-│   ├── 📄 txuribeltz.csproj                 # Bezeroaren konfigurazio fitxategia (.NET 8, WPF Windows App)
+├── 📁 txuribeltz/                            # Bezeroaren proiektua (WPF)
+│   ├── 📄 txuribeltz.csproj                  # Bezeroaren konfigurazio fitxategia (.NET 8, WPF Windows App)
 │   ├── 📄 App.xaml                           # WPF aplikazioaren hasierako puntua
 │   ├── 📄 App.xaml.cs                        # App.xaml-aren code-behind
 │   │
-│   ├── 📁 Windows/                          # Lehio guztiak
-│   │   ├── 📄 MainWindow.xaml               # Login lehioa - Hasierako lehioa (erabiltzailea logeatzeko)
-│   │   ├── 📄 MainWindow.xaml.cs            # Login lehioaren logika
-│   │   ├── 📄 AdminWindow.xaml              # Admin lehioa - Erabiltzaileak kudeatzeko eta estatistikak ikusteko
-│   │   ├── 📄 AdminWindow.xaml.cs           # Admin lehioaren logika
-│   │   ├── 📄 UserWindow.xaml               # Erabiltzaile arruntaren menu nagusia
-│   │   ├── 📄 UserWindow.xaml.cs            # Erabiltzaile lehioaren logika (partida bilatu, TOP 10, etab.)
-│   │   ├── 📄 MatchWindow.xaml              # Partidaren lehioa - Jokoa jolasten den lekua
-│   │   ├── 📄 MatchWindow.xaml.cs           # Partidaren logika (taula, txata, mugimendua)
-│   │   ├── 📄 SingUp.xaml                   # Erregistratzeko lehioa - Erabiltzaile berriak sortzeko
-│   │   ├── 📄 SingUp.xaml.cs                # Erregistratzeko logika
-│   │   ├── 📄 PasahitzaAldatu.xaml          # Pasahitza aldatzeko lehio txikia
-│   │   └── 📄 PasahitzaAldatu.xaml.cs       # Pasahitza aldatzeko logika
+│   ├── 📁 Windows/                           # Lehio guztiak
+│   │   ├── 📄 MainWindow.xaml                # Login lehioa - Hasierako lehioa (erabiltzailea logeatzeko)
+│   │   ├── 📄 MainWindow.xaml.cs             # Login lehioaren logika
+│   │   ├── 📄 AdminWindow.xaml               # Admin lehioa - Erabiltzaileak kudeatzeko eta estatistikak ikusteko
+│   │   ├── 📄 AdminWindow.xaml.cs            # Admin lehioaren logika
+│   │   ├── 📄 UserWindow.xaml                # Erabiltzaile arruntaren menu nagusia
+│   │   ├── 📄 UserWindow.xaml.cs             # Erabiltzaile lehioaren logika (partida bilatu, TOP 10, etab.)
+│   │   ├── 📄 MatchWindow.xaml               # Partidaren lehioa - Jokoa jolasten den lekua
+│   │   ├── 📄 MatchWindow.xaml.cs            # Partidaren logika (taula, txata, mugimendua)
+│   │   ├── 📄 SingUp.xaml                    # Erregistratzeko lehioa - Erabiltzaile berriak sortzeko
+│   │   ├── 📄 SingUp.xaml.cs                 # Erregistratzeko logika
+│   │   ├── 📄 PasahitzaAldatu.xaml           # Pasahitza aldatzeko lehio txikia
+│   │   └── 📄 PasahitzaAldatu.xaml.cs        # Pasahitza aldatzeko logika
 │   │
-│   ├── 📁 Services/                         # Zerbitzuak
-│   │   └── 📄 ValidationService.cs          # Login eta signup baliozkotzeko zerbitzua (unit testetarako)
+│   ├── 📁 Services/                          # Zerbitzuak
+│   │   └── 📄 ValidationService.cs           # Login eta signup baliozkotzeko zerbitzua (unit testetarako)
 │   │
-│   └── 📄 PdfExport.cs                      # PDF txostenak sortzeko klaseak (QuestPDF erabiliz)
-│                                             # - Top10Document: TOP 10 ranking-a PDF-an esportatzeko
-│                                             # - UserStatsDocument: Erabiltzaile baten estatistikak PDF-an
-│                                             # - PartidaKopuruaDocument: Partida kopurua PDF-an
+│   └── 📄 PdfExport.cs                       # PDF txostenak sortzeko klaseak (QuestPDF erabiliz)
+│                                              # - Top10Document: TOP 10 ranking-a PDF-an esportatzeko
+│                                              # - UserStatsDocument: Erabiltzaile baten estatistikak PDF-an
+│                                              # - PartidaKopuruaDocument: Partida kopurua PDF-an
 │
-├── 📁 txuribelt_test/                       # Unit test proiektua
-│   ├── 📄 txuribelt_test.csproj             # Test proiektuaren konfigurazioa (xUnit)
-│   └── 📄 ValidationServiceTests.cs         # ValidationService klaseko testak
+├── 📁 txuribelt_test/                        # Unit test proiektua
+│   ├── 📄 txuribelt_test.csproj              # Test proiektuaren konfigurazioa (xUnit)
+│   └── 📄 ValidationServiceTests.cs          # ValidationService klaseko testak
 │
 │
 ├── 📄 .gitignore                             # Git-ek ez ikusi beharreko fitxategiak
@@ -110,14 +111,14 @@ Proiektuak **PostgreSQL** datu-basea erabiltzen du Docker kontainer batean. Datu
 Sistemako erabiltzaile guztien informazioa gordetzen duen taula nagusia.
 ```bash
 
-| Zutabea      | Mota          | Deskribapena                                    |
-|--------------|---------------|-------------------------------------------------|
-| `id`         | SERIAL (PK)   | Erabiltzailearen identifikatzaile bakarra       |
-| `username`   | VARCHAR(50)   | Erabiltzaile-izena (login-erako)                |
-| `password`   | VARCHAR(255)  | Pasahitza (testu arrunta, enkriptatu gabe)      |
-| `elo`        | INTEGER       | Erabiltzailearen puntuazioa (hasiera: 1000)     |
-| `mota`       | VARCHAR(10)   | Erabiltzaile mota: `admin` edo `user`           |
-| ~~`avatar`~~ | ~~BYTEA~~     | ~~(Ez inplementatuta)~~                         |
+| Zutabea      | Mota          | Deskribapena                                          |
+|--------------|---------------|-------------------------------------------------------|
+| `id`         | SERIAL (PK)   | Erabiltzailearen identifikatzaile bakarra             |
+| `username`   | VARCHAR(50)   | Erabiltzaile-izena (login-erako)                      |
+| `password`   | VARCHAR(255)  | Pasahitza (testu arrunta, enkriptatu gabe)            |
+| `elo`        | INTEGER       | Erabiltzailearen puntuazioa (hasiera: 1000)           |
+| `mota`       | VARCHAR(10)   | Erabiltzaile mota: `admin` edo `user` edo `ezabatuta` |
+| ~~`avatar`~~ | ~~BYTEA~~     | ~~(Ez inplementatuta)~~                               |
 ```
 **Oharrak:**
 - Administratzaileak erabiltzaileak kudeatu ditzake (sortu, ezabatu, pasahitza aldatu)
@@ -168,7 +169,7 @@ Honek egingo du:
 ### Honelakoa izango da karpetaren egitura
 
 ```
-📁 Txuribeltz_v1
+📁 Txuribeltz_v1.1
 │
 ├───📁 app/
 │   ├── 📄 Server.exe          # Zerbitzariaren exekutablea
@@ -181,4 +182,4 @@ Honek egingo du:
 ```
 
 Docker martxan daukagula aplikazioa martxan jarri dezakegu. Lehenengo zerbitzaria martxan jarriko da **Server.exe**. Ondoren zerbitzaria martxan dagoenean, bezeroak ireki daitezke **Client.exe** exekutagarriarekin.
-Zerbitzaria erakutsiko du bere logean erabili daitezkeen IP helbideak. Ideia da sare berdinean funtzionatzea, adibidez, ez du funtzionatuko WSL edo Dockerren IP-ak jarriz. IP-ak probatu beharko dira zerbitzarira konektatu arte. Bezeroa zerbitzariaren makina berdinean irekitzen bada, 'localhost' sartuz nahikoa izango da konektatu ahal izateko.
+Zerbitzaria erakutsiko du bere logean erabili daitezkeen IP helbideak. Ideia da sare berdinean funtzionatzea, adibidez, ez du funtzionatuko WSL edo Dockerren IP-ak jarriz. IP-ak probatu beharko dira zerbitzarira konektatu arte. Bezeroa zerbitzariaren makina berdinean irekitzen bada, **localhost** edo **127.0.0.1** sartuz nahikoa izango da konektatu ahal izateko.

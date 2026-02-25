@@ -31,7 +31,7 @@
 │─────────────────────────│
 │ PK: id (SERIAL)         │
 │ FK: player1_id ─────────┼─┐
-│ FK: player2_id ─────────┼─┤
+│ FK: player2_id ─────────┼─┤> FOREIGN KEY
 │ FK: winner_id ──────────┼─┘
 │ played_at (TIMESTAMP)   │
 └─────────────────────────┘
@@ -43,6 +43,8 @@
 **Helburua**: Sistemako erabiltzaile guztien informazioa gordetzea (admin eta arrunteak). Autentikazioa, ranking-a eta erabiltzaile-kudeaketa egiteko erabiltzen da.
 
 **Domeinua**: Erabiltzaile bat jokalari bat edo administratzaile bat izan daiteke. Bakoitzak bere ELO puntuazioa du partidetan arrakasta izan duen arabera.
+
+Badago **ezabatuta** dagoen erabiltzaile mota. Erabiltzaile mota ezarriko zaio ezabatzen den erabiltzaileari. Datu basean hain zuzen ere erlazioa daukatenez **erabiltzaile** eta **partidak** taulak, erabiltzaile bat ezabatzean daturik ez galtzeko erabiliko da erabiltzaile berri hau.
 ```bash
 | Zutabea    | Mota          | Deskribapena                                                |
 |------------|---------------|-------------------------------------------------------------|
@@ -50,7 +52,7 @@
 | `username` | VARCHAR(50)   | Erabiltzaile-izena (login-erako, bakarra izan behar du)     |
 | `password` | VARCHAR(255)  | Pasahitza testu arruntean (ez da enkriptatuta)              |
 | `elo`      | INTEGER       | Puntuazioa ranking-erako (hasiera: 1000)                    |
-| `mota`     | VARCHAR(10)   | Erabiltzaile mota: `admin` edo `user`                       |
+| `mota`     | VARCHAR(10)   | Erabiltzaile mota: `admin` edo `user` edo `ezabatuta`       |
 ```
 **Kontsulta Adibidea**:
 ```sql
@@ -94,15 +96,37 @@ SELECT COUNT(*) FROM partidak WHERE played_at BETWEEN '2025-01-01' AND '2025-12-
 
 **Foreign Keys**:
 ```sql
-ALTER TABLE partidak
-  ADD CONSTRAINT fk_player1 FOREIGN KEY (player1_id) REFERENCES erabiltzaileak(id),
-  ADD CONSTRAINT fk_player2 FOREIGN KEY (player2_id) REFERENCES erabiltzaileak(id),
-  ADD CONSTRAINT fk_winner  FOREIGN KEY (winner_id)  REFERENCES erabiltzaileak(id);
+FOREIGN KEY (player1_id) REFERENCES erabiltzaileak(id) ON DELETE SET DEFAULT,
+FOREIGN KEY (player2_id) REFERENCES erabiltzaileak(id) ON DELETE SET DEFAULT,
+FOREIGN KEY (winner_id) REFERENCES erabiltzaileak(id) ON DELETE SET DEFAULT
 ```
+**DEFAULT**: ID 2 izango da defektuzkoa **ezabatuta** motako erabiltzailea bilakatu dadin. ID 1 daujan erabiltzailea **admin** da.
 
 ---
 
 ## Funtzionaltasun Tekniko Garrantzitsuak
+
+### Pasahitzak haseatzea
+
+**Deskribapena**: Pasahitzak ByBCrypt hash-a erabiltzen dute.
+
+```c#
+public static class PasahitzaHashHelper
+{
+    // BCrypt hash-a sortzen du hemen (salt-arekin batera)
+    public static string HashPassword(string password)
+    {
+        // WorkFactor = 12 da gomendatuena, balantzea segurtasun/errendimendua artean
+        return BCrypt.Net.BCrypt.HashPassword(password, workFactor: 12);
+    }
+
+    // Pasahitza egiaztatzen du gordetako hash-arekin alderatuz
+    public static bool VerifyPassword(string password, string hashedPassword)
+    {
+        return BCrypt.Net.BCrypt.Verify(password, hashedPassword);
+    }
+}
+```
 
 ### TCP/IP Komunikazioa
 **Deskribapena**: Zerbitzaria eta bezeroa TCP socket-en bidez komunikatzen dira. Zerbitzaria `TcpListener` erabiltzen du bezero-konexioak onartzeko eta `StreamWriter`/`StreamReader` mezuak bidaltzeko/jasotzeko.
@@ -543,14 +567,6 @@ if (!validation.IsValid) {
 
 ### Segurtasun Arazoak
 
-#### **Pasahitzak enkriptatu gabe**
-**Deskribapena**: Pasahitzak testu arruntean gordetzen dira datu-basean. Ez dago hash algoritmoen (bcrypt, Argon2) erabilpenik.
-
-**Arriskua**: Datu-basea sarbide ez-baimendunak jasaten badu, pasahitz guztiak eskuragarri egongo dira.
-
-**Konponbidea**: Inplementatu pasahitz-hash-a `BCrypt.Net` edo `ASP.NET Core Identity` erabiliz.
-
----
 
 #### **SQL Injection prebentzioa**
 **Deskribapena**: Npgsql parametrizatuak erabiltzen dira (`@parametroa`), baina input balidazio gehigarririk ez dago.
@@ -623,9 +639,8 @@ private const int MaxBezeroak = 10;
 ### Etorkizuneko Hobekuntzak
 
 - **SSL/TLS enkriptazioa** TCP komunikazioan
-- **Pasahitz-hash-a** (bcrypt, Argon2)
 - **Logger-a** (Serilog, NLog)
-- **Unit testak** gehiago
+- **Unit test** gehiago
 - **ELO-basatutako matchmaking-a**
 
 ---
@@ -634,7 +649,7 @@ private const int MaxBezeroak = 10;
 
 Dokumentu honek Txuribeltz proiektuaren funtzionaltasun teknikoak, metodoak eta ezagutzen diren mugak deskribatzen ditu. Hobekuntza posibleak etorkizuneko bertsioetarako proposatzen dira.
 
-**Bertsio**: 1.0  
-**Data**: 2025-06-15  
+**Bertsio**: 1.1  
+**Data**: 2026-02-25 
 
 **Egilea**: Aitor Gaillard
